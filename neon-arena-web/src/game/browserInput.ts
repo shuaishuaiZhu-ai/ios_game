@@ -1,7 +1,7 @@
 import { length, normalize, type Vector2, zeroVector } from "../core/geometry";
 import type { MeleeAction } from "../core/models";
 
-export type CombatAction = "fire" | MeleeAction;
+export type CombatAction = "fire" | "dash" | "roll" | MeleeAction;
 
 export class BrowserInputState {
   movement: Vector2 = { ...zeroVector };
@@ -29,6 +29,18 @@ export class BrowserInputState {
     const hasFire = this.actions.has("fire");
     this.actions.delete("fire");
     return hasFire;
+  }
+
+  consumeDash(): boolean {
+    const hasDash = this.actions.has("dash");
+    this.actions.delete("dash");
+    return hasDash;
+  }
+
+  consumeRoll(): boolean {
+    const hasRoll = this.actions.has("roll");
+    this.actions.delete("roll");
+    return hasRoll;
   }
 
   consumeMelee(): MeleeAction | undefined {

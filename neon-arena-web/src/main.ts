@@ -1,11 +1,13 @@
 import Phaser from "phaser";
 import "./styles.css";
 import { AIController } from "./core/aiController";
-import { mapByID, arenaMaps } from "./core/maps";
+import { arenaMaps } from "./core/maps";
 import { GameSession } from "./core/gameSession";
 import { matchConfig, type Difficulty, type MatchConfig, type Ruleset } from "./core/models";
 import { themeByID, visualThemes } from "./core/themes";
 import { ArenaScene, type SceneDriver } from "./game/ArenaScene";
+import { BootScene } from "./game/BootScene";
+import { PreloadScene } from "./game/PreloadScene";
 import { attachTouchControls, BrowserInputState } from "./game/browserInput";
 import { RoomClient } from "./network/roomClient";
 
@@ -123,7 +125,6 @@ function connectOnlineRoom(roomCode: string): void {
 }
 
 function launchGame(localPlayerID: string, config: MatchConfig, driver: SceneDriver, themeID: string): void {
-  const map = mapByID(config.mapID);
   menu.hidden = true;
   gameShell.hidden = false;
   inputState.setMovement({ x: 0, y: 0 });
@@ -146,17 +147,16 @@ function launchGame(localPlayerID: string, config: MatchConfig, driver: SceneDri
   currentGame = new Phaser.Game({
     type: Phaser.AUTO,
     parent: gameRoot,
-    width: map.size.x,
-    height: map.size.y,
+    width: window.innerWidth,
+    height: window.innerHeight,
     backgroundColor: themeByID(themeID).background,
     scale: {
       parent: gameRoot,
-      mode: Phaser.Scale.FIT,
-      autoCenter: Phaser.Scale.CENTER_BOTH,
-      width: map.size.x,
-      height: map.size.y
+      mode: Phaser.Scale.RESIZE,
+      width: "100%",
+      height: "100%"
     },
-    scene
+    scene: [new BootScene(), new PreloadScene(), scene]
   });
 }
 

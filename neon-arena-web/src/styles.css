@@ -137,9 +137,11 @@ canvas {
 #hud select {
   pointer-events: auto;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(3, 9, 20, 0.68);
   color: white;
   padding: 8px 12px;
+  backdrop-filter: blur(8px);
 }
 
 #hud button {
@@ -170,6 +172,7 @@ canvas {
   background: rgba(0, 0, 0, 0.28);
   pointer-events: auto;
   position: relative;
+  box-shadow: 0 0 28px color-mix(in srgb, var(--arena-accent) 35%, transparent);
 }
 
 .stick span {
@@ -185,13 +188,17 @@ canvas {
 
 .combat {
   display: grid;
-  grid-template-columns: repeat(2, 76px);
+  grid-template-columns: repeat(3, 72px);
   gap: 10px;
   pointer-events: auto;
 }
 
 .combat button {
-  min-height: 48px;
+  width: 72px;
+  min-height: 52px;
+  border-radius: 999px;
+  padding: 0 8px;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--arena-accent) 28%, transparent);
 }
 
 @media (max-width: 720px) {
@@ -208,5 +215,14 @@ canvas {
   #hud {
     align-items: flex-start;
     flex-wrap: wrap;
+  }
+
+  .combat {
+    grid-template-columns: repeat(2, 68px);
+  }
+
+  .combat button {
+    width: 68px;
+    min-height: 48px;
   }
 }

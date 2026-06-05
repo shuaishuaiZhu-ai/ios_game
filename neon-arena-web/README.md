@@ -1,18 +1,18 @@
 # Neon Arena Web/PWA
 
-Neon Arena 的独立 Web/PWA 版本，使用 Vite + TypeScript + Phaser 实现浏览器端游戏，使用 Cloudflare Worker + Durable Object 实现在线房间 WebSocket 同步。
+手机端优先的赛博卡通 2D 多人竞技场游戏。前端使用 Vite + TypeScript + Phaser，在线房间使用 Cloudflare Worker + Durable Object + WebSocket。
 
-## 已实现范围
+## 当前能力
 
-- 手机浏览器/PWA 壳：`manifest.webmanifest`、service worker、全屏横屏配置。
 - 单人 AI：简单、中等、困难三档。
-- 在线房间：游客昵称 + 房间码，目标人数 2/3/4，房间满员后开局。
-- 三张地图：`Neon Grid`、`Foundry Lanes`、`Skyline Ruins`。
-- 地图墙体：阻挡玩家移动和远程子弹。
-- 武器拾取：普通模式刷新近战/远程武器，近战伤害高于远程。
-- 肉搏模式：禁用武器和射击，支持拳击、飞踢、摔人。
-- 缩圈机制：3 阶段圆形安全区，圈外持续掉血。
-- 视觉主题：`Ion Circuit`、`Foundry Glow`、`Skyline Ruins`，菜单和游戏内均可切换。
+- 在线房间：游客昵称 + 房间码，支持 2/3/4 人。
+- 5 张大地图：Ion Rooftop Circuit、Foundry Overpass Chase、Skyline Garden Ruins、Orbital Dockyard Sprawl、Night Market Crossfire。
+- 大地图缩圈：3 阶段安全区，圈外持续掉血，避免逃跑拖局。
+- 武器拾取：energy blade、shock hammer、pulse rifle、laser carbine。
+- 肉搏模式：禁用武器拾取和射击，保留拳击、飞踢、摔人。
+- 战斗手感：冲刺、翻滚、击退、无敌窗口、武器冷却反馈。
+- 资产驱动渲染：地图、墙体、角色、武器和特效通过 manifest 加载，不再依赖纯几何占位。
+- 手机控制：左摇杆，右侧射击、冲刺、翻滚、拳、踢、摔。
 
 ## 本地命令
 
@@ -24,33 +24,38 @@ npm.cmd run build
 npm.cmd run dev
 ```
 
-`npm.cmd run dev` 只启动前端 Vite。在线房间需要 Worker/Durable Object，可在构建后用 Wrangler 或部署到 Cloudflare 验证。
+`npm.cmd run dev` 只启动前端 Vite。在线房间需要 Worker/Durable Object，可通过 `wrangler dev` 或 Cloudflare 部署验证。
+
+## 资产工作流
+
+- 资产 manifest：`src/game/assets.ts`
+- 当前项目资产：`public/assets/`
+- ImageGen/Pro 提示词：`docs/asset-prompts.md`
+
+用户提供的 3 张概念图中，第 1 张作为主视觉目标；第 2 张用于 Foundry 地图方向；第 3 张用于 Skyline 地图方向。后续如果生成了更完整 PNG 或精灵表，只需要把文件放入 `public/assets/` 并更新 manifest key 对应路径。
 
 ## Cloudflare 部署
 
 需要先完成以下任一认证方式：
 
 - `npx wrangler login`
-- 或配置有 Worker/Pages/Durable Objects 权限的 `CLOUDFLARE_API_TOKEN`
+- 或设置具备 Worker、Pages、Durable Objects 权限的 `CLOUDFLARE_API_TOKEN`
 
-部署入口：
+部署：
 
 ```powershell
 npm.cmd run build
 npx wrangler deploy
 ```
 
-默认使用 Cloudflare 分配的域名即可。是否绑定自定义域名可以后续再决定，不影响首版可玩性。
+默认可以先使用 Cloudflare 分配域名。自定义域名不影响首版可玩性，可以后续配置。
 
-## 测试覆盖
+## 验证重点
 
-- `tests/core.test.ts`：地图合法性、墙体碰撞、子弹遮挡、武器伤害、肉搏模式、缩圈、胜负、AI 安全区决策。
-- `tests/workerRoomState.test.ts`：房间创建、加入、满员、4 人 FFA、输入快照、断线重连。
-
-## 仍需你提供或确认
-
-- Cloudflare 账号。
-- Wrangler 登录或 Cloudflare API Token。
-- Cloudflare Pages/Worker 项目配置。
-- 是否需要自定义域名。
-- 上线前最好用一台低端手机浏览器实测性能和触控手感。
+- `npm.cmd test`
+- `npm.cmd run lint`
+- `npm.cmd run build`
+- Vite 桌面和手机视口截图
+- 单人 AI 完成一局
+- 两个浏览器标签页加入同一在线房间
+- HUD 不遮挡战场中心，角色、武器、墙体、缩圈都能读清

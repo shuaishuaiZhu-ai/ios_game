@@ -1,10 +1,13 @@
-import { add, containsPoint, distance, dot, expanded, intersectsSegment, length, maxX, maxY, minX, minY, normalize, scale, sub, vec, type Vector2 } from "./geometry";
+import { add, containsPoint, distance, dot, expanded, intersectsSegment, length, maxX, maxY, minX, minY, normalize, scale, sub, vec, zeroVector, type Vector2 } from "./geometry";
 import { mapByID, safeZoneState } from "./maps";
-import { energyBlade, pulseRifle, rulesetForMode, type DroppedWeapon, type Elimination, type MapDefinition, type MatchConfig, type MatchSnapshot, type MeleeAction, type PlayerInput, type PlayerState, type ProjectileState, type SafeZoneState } from "./models";
+import { defaultWeaponForType, energyBlade, pulseRifle, rulesetForMode, weaponByID, type DroppedWeapon, type Elimination, type MapDefinition, type MatchConfig, type MatchSnapshot, type MeleeAction, type PlayerInput, type PlayerState, type ProjectileState, type SafeZoneState } from "./models";
 
 export const playerRadius = 18;
 export const pickupRadius = 32;
 export const hitRadius = 22;
+export const moveSpeed = 210;
+export const dashDistance = 150;
+export const rollDistance = 96;
 
 export class GameSession {
   readonly config: MatchConfig;
@@ -31,7 +34,10 @@ export class GameSession {
         health: 100,
         facing: vec(1, 0),
         isEliminated: false,
-        cooldownRemaining: 0
+        cooldownRemaining: 0,
+        dashCooldownRemaining: 0,
+        rollCooldownRemaining: 0,
+        invulnerabilityRemaining: 0
       });
     });
 
@@ -39,6 +45,7 @@ export class GameSession {
       this.droppedWeapons = map.weaponSpawnPoints.map((spawn, index) => ({
         id: spawn.id,
         type: spawn.allowedTypes[index % spawn.allowedTypes.length]!,
+        weaponID: spawn.weaponIDs?.[index % spawn.weaponIDs.length] ?? defaultWeaponForType(spawn.allowedTypes[index % spawn.allowedTypes.length]!),
         position: { ...spawn.position },
         isPickedUp: false
       }));
@@ -85,6 +92,9 @@ export class GameSession {
 
     for (const player of this.players.values()) {
       player.cooldownRemaining = Math.max(0, player.cooldownRemaining - deltaSeconds);
+      player.dashCooldownRemaining = Math.max(0, player.dashCooldownRemaining - deltaSeconds);
+      player.rollCooldownRemaining = Math.max(0, player.rollCooldownRemaining - deltaSeconds);
+      player.invulnerabilityRemaining = Math.max(0, player.invulnerabilityRemaining - deltaSeconds);
     }
 
     const latestInputs = new Map<string, PlayerInput>();
@@ -102,8 +112,18 @@ export class GameSession {
       }
 
       const movement = normalize(input.movement);
-      const candidate = add(player.position, scale(movement, 170 * deltaSeconds));
+      const candidate = add(player.position, scale(movement, moveSpeed * deltaSeconds));
       player.position = this.constrainedPosition(candidate);
+
+      const burstDirection = length(movement) > 0 ? movement : player.facing;
+      if (input.dashPressed && player.dashCooldownRemaining <= 0 && length(burstDirection) > 0) {
+        player.position = this.constrainedPosition(add(player.position, scale(normalize(burstDirection), dashDistance)));
+        player.dashCooldownRemaining = 1.2;
+      } else if (input.rollPressed && player.rollCooldownRemaining <= 0 && length(burstDirection) > 0) {
+        player.position = this.constrainedPosition(add(player.position, scale(normalize(burstDirection), rollDistance)));
+        player.rollCooldownRemaining = 0.9;
+        player.invulnerabilityRemaining = 0.26;
+      }
     }
 
     this.applyPickups();
@@ -141,7 +161,10 @@ export class GameSession {
       health: 100,
       facing: vec(1, 0),
       isEliminated: false,
-      cooldownRemaining: 0
+      cooldownRemaining: 0,
+      dashCooldownRemaining: 0,
+      rollCooldownRemaining: 0,
+      invulnerabilityRemaining: 0
     });
     return true;
   }
@@ -194,6 +217,7 @@ export class GameSession {
       this.droppedWeapons = [];
       for (const player of this.players.values()) {
         delete player.weapon;
+        delete player.weaponID;
       }
       return;
     }
@@ -204,6 +228,7 @@ export class GameSession {
       if (!picker) continue;
       weapon.isPickedUp = true;
       picker.weapon = weapon.type;
+      picker.weaponID = weapon.weaponID;
     }
   }
 
@@ -218,8 +243,9 @@ export class GameSession {
     }
 
     if (player.weapon === "melee") {
-      this.damageFirstTarget(player, energyBlade.range, energyBlade.damage);
-      player.cooldownRemaining = energyBlade.cooldown;
+      const weapon = weaponByID(player.weaponID ?? "energy-blade");
+      this.damageFirstTarget(player, weapon.range, weapon.damage, weapon.knockback);
+      player.cooldownRemaining = weapon.cooldown;
     } else if (player.weapon === "ranged") {
       this.spawnProjectile(player);
     } else if (input.meleeAction) {
@@ -229,11 +255,11 @@ export class GameSession {
 
   private applyMeleeAction(action: MeleeAction, player: PlayerState): void {
     const stats = meleeStats(action);
-    this.damageFirstTarget(player, stats.range, stats.damage);
+    this.damageFirstTarget(player, stats.range, stats.damage, stats.knockback);
     player.cooldownRemaining = stats.cooldown;
   }
 
-  private damageFirstTarget(player: PlayerState, range: number, damage: number): void {
+  private damageFirstTarget(player: PlayerState, range: number, damage: number, knockback: number): void {
     const facing = normalize(player.facing);
     if (length(facing) <= 0) return;
 
@@ -247,24 +273,26 @@ export class GameSession {
       .sort((a, b) => distance(a.position, player.position) - distance(b.position, player.position))[0];
 
     if (target) {
-      this.damagePlayer(target.id, damage);
+      this.damagePlayer(target.id, damage, scale(facing, knockback));
     }
   }
 
   private spawnProjectile(player: PlayerState): void {
-    const direction = normalize(player.facing);
+    const weapon = player.weaponID ? weaponByID(player.weaponID) : pulseRifle;
+    const direction = normalize(applySpread(player.facing, weapon.spread, this.tick + this.projectiles.length));
     if (length(direction) <= 0) return;
 
     this.projectiles.push({
       id: `p-${this.tick}-${this.projectiles.length}`,
       ownerID: player.id,
       position: add(player.position, scale(direction, 28)),
-      velocity: scale(direction, pulseRifle.projectileSpeed),
-      damage: pulseRifle.damage,
-      remainingRange: pulseRifle.range,
+      velocity: scale(direction, weapon.projectileSpeed),
+      damage: weapon.damage,
+      knockback: weapon.knockback,
+      remainingRange: weapon.range,
       isActive: true
     });
-    player.cooldownRemaining = pulseRifle.cooldown;
+    player.cooldownRemaining = weapon.cooldown;
   }
 
   private updateProjectiles(deltaSeconds: number): void {
@@ -287,7 +315,7 @@ export class GameSession {
         (player) => player.id !== projectile.ownerID && !player.isEliminated && distance(player.position, end) <= hitRadius
       );
       if (hit) {
-        this.damagePlayer(hit.id, projectile.damage);
+        this.damagePlayer(hit.id, projectile.damage, scale(normalize(projectile.velocity), projectile.knockback));
         projectile.isActive = false;
       }
 
@@ -308,10 +336,14 @@ export class GameSession {
     }
   }
 
-  private damagePlayer(id: string, amount: number): void {
+  private damagePlayer(id: string, amount: number, knockback: Vector2 = { ...zeroVector }): void {
     const player = this.players.get(id);
     if (!player || player.isEliminated) return;
+    if (player.invulnerabilityRemaining > 0) return;
     player.health = Math.max(0, player.health - amount);
+    if (length(knockback) > 0) {
+      player.position = this.constrainedPosition(add(player.position, knockback));
+    }
     if (player.health <= 0) {
       player.isEliminated = true;
       this.eliminations.push({ playerID: id, tick: this.tick });
@@ -328,10 +360,19 @@ export class GameSession {
   }
 }
 
-export function meleeStats(action: MeleeAction): { damage: number; range: number; cooldown: number } {
-  if (action === "punch") return { damage: 12, range: 38, cooldown: 0.28 };
-  if (action === "flyingKick") return { damage: 22, range: 68, cooldown: 0.62 };
-  return { damage: 26, range: 44, cooldown: 0.82 };
+export function meleeStats(action: MeleeAction): { damage: number; range: number; cooldown: number; knockback: number } {
+  if (action === "punch") return { damage: 12, range: 38, cooldown: 0.28, knockback: 24 };
+  if (action === "flyingKick") return { damage: 22, range: 72, cooldown: 0.62, knockback: 56 };
+  return { damage: 26, range: 46, cooldown: 0.82, knockback: 74 };
+}
+
+function applySpread(direction: Vector2, spread: number, seed: number): Vector2 {
+  const base = normalize(direction);
+  const jitter = Math.sin(seed * 12.9898) * 43758.5453;
+  const angle = (jitter - Math.floor(jitter) - 0.5) * spread;
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  return normalize({ x: base.x * cos - base.y * sin, y: base.x * sin + base.y * cos });
 }
 
 function clone<T>(value: T): T {

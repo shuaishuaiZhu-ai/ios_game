@@ -3,8 +3,9 @@ import { add, length, normalize, scale, sub, type Vector2, zeroVector } from "..
 import { AIController } from "../core/aiController";
 import { GameSession, hitRadius, playerRadius } from "../core/gameSession";
 import { mapByID } from "../core/maps";
-import type { MapDefinition, MatchConfig, MatchSnapshot, MeleeAction, PlayerInput } from "../core/models";
+import type { DroppedWeapon, MapDefinition, MatchConfig, MatchSnapshot, MeleeAction, PlayerInput, PlayerState, ProjectileState } from "../core/models";
 import { themeByID, type VisualTheme } from "../core/themes";
+import { fighterKeyForIndex, weaponTextureKey } from "./assets";
 import { BrowserInputState } from "./browserInput";
 
 export type SceneDriver =
@@ -21,13 +22,18 @@ export interface ArenaSceneOptions {
 }
 
 export class ArenaScene extends Phaser.Scene {
-  private graphics!: Phaser.GameObjects.Graphics;
+  private worldGraphics!: Phaser.GameObjects.Graphics;
+  private uiGraphics!: Phaser.GameObjects.Graphics;
   private overlayText!: Phaser.GameObjects.Text;
   private theme: VisualTheme;
   private map: MapDefinition;
   private keys: Record<string, Phaser.Input.Keyboard.Key> = {};
   private pointerAim: Vector2 = { ...zeroVector };
   private lastNetworkSend = 0;
+  private playerSprites = new Map<string, Phaser.GameObjects.Image>();
+  private weaponSprites = new Map<string, Phaser.GameObjects.Image>();
+  private projectileSprites = new Map<string, Phaser.GameObjects.Image>();
+  private cameraTarget: Phaser.GameObjects.Image | undefined;
 
   constructor(private readonly options: ArenaSceneOptions) {
     super({ key: "arena" });
@@ -36,17 +42,25 @@ export class ArenaScene extends Phaser.Scene {
   }
 
   create(): void {
-    this.graphics = this.add.graphics();
-    this.overlayText = this.add.text(this.map.size.x / 2, 44, "", {
+    this.add.image(this.map.size.x / 2, this.map.size.y / 2, this.map.art.backgroundKey).setDisplaySize(this.map.size.x, this.map.size.y);
+    this.createWallSprites();
+    this.worldGraphics = this.add.graphics();
+    this.uiGraphics = this.add.graphics();
+    this.overlayText = this.add.text(this.map.size.x / 2, 54, "", {
       fontFamily: "Inter, system-ui, sans-serif",
-      fontSize: "28px",
+      fontSize: "30px",
       color: "#ffffff",
       stroke: "#000000",
-      strokeThickness: 4
+      strokeThickness: 5
     });
     this.overlayText.setOrigin(0.5, 0);
 
     this.cameras.main.setBounds(0, 0, this.map.size.x, this.map.size.y);
+    this.configureCameraZoom();
+    this.scale.on("resize", this.configureCameraZoom, this);
+    this.events.once(Phaser.Scenes.Events.DESTROY, () => {
+      this.scale.off("resize", this.configureCameraZoom, this);
+    });
     this.keys = (this.input.keyboard?.addKeys({
       W: Phaser.Input.Keyboard.KeyCodes.W,
       A: Phaser.Input.Keyboard.KeyCodes.A,
@@ -57,6 +71,8 @@ export class ArenaScene extends Phaser.Scene {
       Down: Phaser.Input.Keyboard.KeyCodes.DOWN,
       Right: Phaser.Input.Keyboard.KeyCodes.RIGHT,
       Space: Phaser.Input.Keyboard.KeyCodes.SPACE,
+      Shift: Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      Ctrl: Phaser.Input.Keyboard.KeyCodes.CTRL,
       Q: Phaser.Input.Keyboard.KeyCodes.Q,
       E: Phaser.Input.Keyboard.KeyCodes.E,
       R: Phaser.Input.Keyboard.KeyCodes.R
@@ -75,7 +91,7 @@ export class ArenaScene extends Phaser.Scene {
       const driverSnapshot = driver.session.snapshot();
       const aiInputs = driver.aiControllers.map((ai) => ai.input(driverSnapshot, this.map));
       driver.session.step([localInput, ...aiInputs], Math.min(delta / 1000, 0.1));
-    } else if (time - this.lastNetworkSend > 50 || localInput.firePressed || localInput.meleeAction) {
+    } else if (time - this.lastNetworkSend > 50 || localInput.firePressed || localInput.meleeAction || localInput.dashPressed || localInput.rollPressed) {
       driver.sendInput(localInput);
       this.lastNetworkSend = time;
     }
@@ -103,6 +119,8 @@ export class ArenaScene extends Phaser.Scene {
     const aim = length(this.pointerAim) > 0 ? this.pointerAim : this.options.inputState.aim;
     const meleeAction = this.keyboardMeleeAction() ?? this.options.inputState.consumeMelee();
     const firePressed = this.options.inputState.consumeFire() || this.keys.Space?.isDown === true;
+    const dashPressed = this.options.inputState.consumeDash() || this.keys.Shift?.isDown === true;
+    const rollPressed = this.options.inputState.consumeRoll() || this.keys.Ctrl?.isDown === true;
 
     if (player && length(aim) <= 0.05 && length(movement) > 0.05) {
       this.options.inputState.setAim(movement);
@@ -115,9 +133,9 @@ export class ArenaScene extends Phaser.Scene {
       firePressed,
       tick: snapshot?.tick ?? 0
     };
-    if (meleeAction) {
-      input.meleeAction = meleeAction;
-    }
+    if (dashPressed) input.dashPressed = true;
+    if (rollPressed) input.rollPressed = true;
+    if (meleeAction) input.meleeAction = meleeAction;
     return input;
   }
 
@@ -138,26 +156,29 @@ export class ArenaScene extends Phaser.Scene {
   private updatePointerAim(pointer: Phaser.Input.Pointer): void {
     const snapshot = this.currentSnapshot();
     const player = snapshot?.players.find((candidate) => candidate.id === this.options.localPlayerID);
-    if (!player) {
-      return;
-    }
+    if (!player) return;
 
     const worldPoint = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
     this.pointerAim = normalize(sub(worldPoint, player.position));
     this.options.inputState.setAim(this.pointerAim);
   }
 
+  private createWallSprites(): void {
+    for (const wall of this.map.walls) {
+      this.add
+        .image(wall.rect.origin.x + wall.rect.size.x / 2, wall.rect.origin.y + wall.rect.size.y / 2, this.map.art.wallKey)
+        .setDisplaySize(wall.rect.size.x, wall.rect.size.y);
+    }
+  }
+
   private render(snapshot: MatchSnapshot | undefined): void {
-    const graphics = this.graphics;
-    graphics.clear();
-    graphics.fillStyle(color(this.theme.background), 1);
-    graphics.fillRect(0, 0, this.map.size.x, this.map.size.y);
-    this.drawGrid(graphics);
-    this.drawSafeZone(graphics, snapshot);
-    this.drawWalls(graphics);
-    this.drawPickups(graphics, snapshot);
-    this.drawProjectiles(graphics, snapshot);
-    this.drawPlayers(graphics, snapshot);
+    this.worldGraphics.clear();
+    this.uiGraphics.clear();
+    this.drawSafeZone(snapshot);
+    this.updatePickups(snapshot?.droppedWeapons ?? []);
+    this.updateProjectiles(snapshot?.projectiles ?? []);
+    this.updatePlayers(snapshot?.players ?? []);
+    this.drawCombatReadouts(snapshot);
 
     if (!snapshot) {
       this.overlayText.setText("等待房间开局");
@@ -168,76 +189,97 @@ export class ArenaScene extends Phaser.Scene {
     }
   }
 
-  private drawGrid(graphics: Phaser.GameObjects.Graphics): void {
-    graphics.lineStyle(1, color(this.theme.wallStroke), 0.12);
-    for (let x = 0; x <= this.map.size.x; x += 48) {
-      graphics.lineBetween(x, 0, x, this.map.size.y);
-    }
-    for (let y = 0; y <= this.map.size.y; y += 48) {
-      graphics.lineBetween(0, y, this.map.size.x, y);
-    }
+  private drawSafeZone(snapshot: MatchSnapshot | undefined): void {
+    if (!snapshot) return;
+    const zone = snapshot.safeZone;
+    this.worldGraphics.lineStyle(8, color(this.map.art.accent), 0.95);
+    this.worldGraphics.strokeCircle(zone.center.x, zone.center.y, zone.radius);
+    this.worldGraphics.lineStyle(2, color(this.theme.safeZone), 0.42);
+    this.worldGraphics.strokeCircle(zone.center.x, zone.center.y, zone.radius + 18);
+    this.worldGraphics.strokeCircle(zone.center.x, zone.center.y, zone.radius - 18);
   }
 
-  private drawSafeZone(graphics: Phaser.GameObjects.Graphics, snapshot: MatchSnapshot | undefined): void {
-    if (!snapshot) {
-      return;
+  private updatePickups(weapons: DroppedWeapon[]): void {
+    const activeIDs = new Set<string>();
+    for (const weapon of weapons) {
+      if (weapon.isPickedUp) continue;
+      activeIDs.add(weapon.id);
+      const texture = weaponTextureKey(weapon.weaponID);
+      const sprite = this.weaponSprites.get(weapon.id) ?? this.add.image(weapon.position.x, weapon.position.y, texture);
+      sprite.setTexture(texture);
+      sprite.setPosition(weapon.position.x, weapon.position.y);
+      sprite.setDisplaySize(weapon.type === "melee" ? 62 : 74, weapon.type === "melee" ? 62 : 52);
+      sprite.setDepth(7);
+      this.weaponSprites.set(weapon.id, sprite);
+      this.worldGraphics.lineStyle(3, color(weapon.type === "melee" ? this.theme.meleePickup : this.theme.rangedPickup), 0.88);
+      this.worldGraphics.strokeCircle(weapon.position.x, weapon.position.y, 38);
     }
-    graphics.lineStyle(5, color(this.theme.safeZone), 0.9);
-    graphics.strokeCircle(snapshot.safeZone.center.x, snapshot.safeZone.center.y, snapshot.safeZone.radius);
-    graphics.lineStyle(1, color(this.theme.safeZone), 0.35);
-    graphics.strokeCircle(snapshot.safeZone.center.x, snapshot.safeZone.center.y, snapshot.safeZone.radius + 12);
+    this.removeMissing(this.weaponSprites, activeIDs);
   }
 
-  private drawWalls(graphics: Phaser.GameObjects.Graphics): void {
-    for (const wall of this.map.walls) {
-      graphics.fillStyle(color(this.theme.wallFill), 1);
-      graphics.fillRect(wall.rect.origin.x, wall.rect.origin.y, wall.rect.size.x, wall.rect.size.y);
-      graphics.lineStyle(3, color(this.theme.wallStroke), 0.9);
-      graphics.strokeRect(wall.rect.origin.x, wall.rect.origin.y, wall.rect.size.x, wall.rect.size.y);
+  private updateProjectiles(projectiles: ProjectileState[]): void {
+    const activeIDs = new Set<string>();
+    for (const projectile of projectiles) {
+      activeIDs.add(projectile.id);
+      const sprite = this.projectileSprites.get(projectile.id) ?? this.add.image(projectile.position.x, projectile.position.y, "fx-projectile");
+      sprite.setPosition(projectile.position.x, projectile.position.y);
+      sprite.setRotation(Math.atan2(projectile.velocity.y, projectile.velocity.x));
+      sprite.setDisplaySize(44, 20);
+      sprite.setDepth(9);
+      this.projectileSprites.set(projectile.id, sprite);
     }
+    this.removeMissing(this.projectileSprites, activeIDs);
   }
 
-  private drawPickups(graphics: Phaser.GameObjects.Graphics, snapshot: MatchSnapshot | undefined): void {
-    for (const weapon of snapshot?.droppedWeapons ?? []) {
-      if (weapon.isPickedUp) {
-        continue;
+  private updatePlayers(players: PlayerState[]): void {
+    const activeIDs = new Set<string>();
+    const sortedPlayers = [...players].sort((a, b) => a.id.localeCompare(b.id));
+    sortedPlayers.forEach((player, index) => {
+      activeIDs.add(player.id);
+      const isLocal = player.id === this.options.localPlayerID;
+      const texture = fighterKeyForIndex(isLocal ? 0 : index + 1);
+      const sprite = this.playerSprites.get(player.id) ?? this.add.image(player.position.x, player.position.y, texture);
+      sprite.setTexture(texture);
+      sprite.setPosition(player.position.x, player.position.y);
+      sprite.setRotation(Math.atan2(player.facing.y, player.facing.x) + Math.PI / 2);
+      sprite.setAlpha(player.isEliminated ? 0.35 : 1);
+      sprite.setDisplaySize(70, 70);
+      sprite.setDepth(12);
+      this.playerSprites.set(player.id, sprite);
+
+      if (isLocal && this.cameraTarget !== sprite) {
+        this.cameraTarget = sprite;
+        this.cameras.main.startFollow(sprite, true, 0.12, 0.12);
       }
-      const fill = weapon.type === "melee" ? this.theme.meleePickup : this.theme.rangedPickup;
-      graphics.fillStyle(color(fill), 0.9);
-      graphics.beginPath();
-      graphics.moveTo(weapon.position.x, weapon.position.y - 14);
-      graphics.lineTo(weapon.position.x + 14, weapon.position.y);
-      graphics.lineTo(weapon.position.x, weapon.position.y + 14);
-      graphics.lineTo(weapon.position.x - 14, weapon.position.y);
-      graphics.closePath();
-      graphics.fillPath();
-    }
+    });
+    this.removeMissing(this.playerSprites, activeIDs);
   }
 
-  private drawProjectiles(graphics: Phaser.GameObjects.Graphics, snapshot: MatchSnapshot | undefined): void {
-    for (const projectile of snapshot?.projectiles ?? []) {
-      graphics.fillStyle(color(this.theme.projectile), 1);
-      graphics.fillCircle(projectile.position.x, projectile.position.y, 5);
-    }
-  }
-
-  private drawPlayers(graphics: Phaser.GameObjects.Graphics, snapshot: MatchSnapshot | undefined): void {
+  private drawCombatReadouts(snapshot: MatchSnapshot | undefined): void {
     for (const player of snapshot?.players ?? []) {
       const isLocal = player.id === this.options.localPlayerID;
-      const fill = player.isEliminated ? "#3c4654" : isLocal ? this.theme.localPlayer : this.theme.remotePlayer;
-      graphics.fillStyle(color(fill), player.isEliminated ? 0.45 : 1);
-      graphics.fillCircle(player.position.x, player.position.y, playerRadius);
-      graphics.lineStyle(3, color("#ffffff"), isLocal ? 0.9 : 0.35);
-      graphics.strokeCircle(player.position.x, player.position.y, playerRadius);
+      const ringColor = isLocal ? this.theme.localPlayer : this.theme.remotePlayer;
+      this.uiGraphics.lineStyle(isLocal ? 4 : 2, color(ringColor), player.isEliminated ? 0.2 : 0.9);
+      this.uiGraphics.strokeCircle(player.position.x, player.position.y + 8, playerRadius + 18);
 
-      const aimEnd = add(player.position, scale(player.facing, hitRadius + 16));
-      graphics.lineStyle(3, color(fill), 0.8);
-      graphics.lineBetween(player.position.x, player.position.y, aimEnd.x, aimEnd.y);
+      const barWidth = 64;
+      this.uiGraphics.fillStyle(color("#111827"), 0.82);
+      this.uiGraphics.fillRoundedRect(player.position.x - barWidth / 2, player.position.y - 54, barWidth, 8, 4);
+      this.uiGraphics.fillStyle(color(player.health > 35 ? "#22c55e" : "#ef4444"), 1);
+      this.uiGraphics.fillRoundedRect(player.position.x - barWidth / 2, player.position.y - 54, barWidth * Math.max(0, player.health / 100), 8, 4);
 
-      graphics.fillStyle(color("#111827"), 0.9);
-      graphics.fillRect(player.position.x - 24, player.position.y - 34, 48, 6);
-      graphics.fillStyle(color(player.health > 35 ? "#22c55e" : "#ef4444"), 1);
-      graphics.fillRect(player.position.x - 24, player.position.y - 34, 48 * Math.max(0, player.health / 100), 6);
+      const aimEnd = add(player.position, scale(player.facing, hitRadius + 28));
+      this.uiGraphics.lineStyle(4, color(ringColor), 0.85);
+      this.uiGraphics.lineBetween(player.position.x, player.position.y, aimEnd.x, aimEnd.y);
+
+      if (player.dashCooldownRemaining > 0) {
+        this.uiGraphics.lineStyle(2, color("#ffffff"), 0.35);
+        this.uiGraphics.strokeCircle(player.position.x, player.position.y, playerRadius + 27);
+      }
+      if (player.invulnerabilityRemaining > 0) {
+        this.uiGraphics.lineStyle(5, color("#ffffff"), 0.5);
+        this.uiGraphics.strokeCircle(player.position.x, player.position.y, playerRadius + 10);
+      }
     }
   }
 
@@ -252,8 +294,30 @@ export class ArenaScene extends Phaser.Scene {
     this.options.onHud(`${mode} / ${rules}`, zone);
   }
 
+  private configureCameraZoom(): void {
+    const isPhoneLandscape = this.scale.width < 960 && this.scale.width > this.scale.height;
+    if (!isPhoneLandscape) {
+      this.cameras.main.setZoom(1);
+      return;
+    }
+
+    const targetWorldWidth = 1160;
+    const targetWorldHeight = 620;
+    const zoom = Math.min(this.scale.width / targetWorldWidth, this.scale.height / targetWorldHeight);
+    this.cameras.main.setZoom(Phaser.Math.Clamp(zoom, 0.62, 1));
+  }
+
   private nameFor(snapshot: MatchSnapshot, playerID: string): string {
     return snapshot.players.find((player) => player.id === playerID)?.nickname ?? playerID;
+  }
+
+  private removeMissing<T extends Phaser.GameObjects.GameObject>(items: Map<string, T>, activeIDs: Set<string>): void {
+    for (const [id, item] of items) {
+      if (!activeIDs.has(id)) {
+        item.destroy();
+        items.delete(id);
+      }
+    }
   }
 }
 

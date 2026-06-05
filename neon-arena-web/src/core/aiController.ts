@@ -21,6 +21,7 @@ export class AIController {
     const movement = length(safeMovement) > 0 ? safeMovement : combatMovement;
     const meleeAction = this.meleeAction(length(targetVector));
 
+    const shouldBurst = this.shouldDashOrRoll(length(targetVector), snapshot.tick, length(safeMovement) > 0);
     const input: PlayerInput = {
       playerID: this.playerID,
       movement,
@@ -28,6 +29,11 @@ export class AIController {
       firePressed: this.shouldAttack(length(targetVector), snapshot.tick) || meleeAction !== undefined,
       tick: snapshot.tick
     };
+    if (shouldBurst === "dash") {
+      input.dashPressed = true;
+    } else if (shouldBurst === "roll") {
+      input.rollPressed = true;
+    }
     if (meleeAction) {
       input.meleeAction = meleeAction;
     }
@@ -69,6 +75,15 @@ export class AIController {
     if (this.difficulty === "easy") return tick % 22 === 0 && distance < 360;
     if (this.difficulty === "medium") return tick % 14 === 0 && distance < 430;
     return tick % 8 === 0 && distance < 480;
+  }
+
+  private shouldDashOrRoll(distance: number, tick: number, outsideSafeZone: boolean): "dash" | "roll" | undefined {
+    if (outsideSafeZone && tick % 18 === 0) return "dash";
+    if (this.difficulty === "easy") return undefined;
+    if (this.difficulty === "medium" && distance > 260 && tick % 36 === 0) return "dash";
+    if (this.difficulty === "hard" && distance > 220 && tick % 22 === 0) return "dash";
+    if (this.difficulty === "hard" && distance < 72 && tick % 28 === 0) return "roll";
+    return undefined;
   }
 
   private meleeAction(distance: number): MeleeAction | undefined {

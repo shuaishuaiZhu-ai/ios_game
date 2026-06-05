@@ -1,13 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { AIController } from "../src/core/aiController";
-import { containsPoint, expanded, vec } from "../src/core/geometry";
-import { GameSession } from "../src/core/gameSession";
+import { containsPoint, distance, expanded, vec } from "../src/core/geometry";
+import { dashDistance, GameSession, moveSpeed } from "../src/core/gameSession";
 import { arenaMaps, mapByID, safeZoneState } from "../src/core/maps";
-import { energyBlade, matchConfig, pulseRifle, type PlayerInput } from "../src/core/models";
+import { matchConfig, weaponDefinitions, type PlayerInput } from "../src/core/models";
 
 describe("arena maps", () => {
   it("keeps player spawns and weapon spawns out of walls", () => {
+    expect(arenaMaps).toHaveLength(5);
     for (const map of arenaMaps) {
+      expect(map.size.x).toBeGreaterThanOrEqual(1600);
+      expect(map.size.y).toBeGreaterThanOrEqual(1100);
       expect(map.spawnPoints.length).toBeGreaterThanOrEqual(4);
       for (const spawn of map.spawnPoints) {
         expect(map.walls.some((wall) => containsPoint(expanded(wall.rect, 18), spawn))).toBe(false);
@@ -21,7 +24,9 @@ describe("arena maps", () => {
 
 describe("weapons and collision", () => {
   it("keeps melee damage higher than ranged damage", () => {
-    expect(energyBlade.damage).toBeGreaterThan(pulseRifle.damage);
+    const meleeDamage = Math.min(...weaponDefinitions.filter((weapon) => weapon.type === "melee").map((weapon) => weapon.damage));
+    const rangedDamage = Math.max(...weaponDefinitions.filter((weapon) => weapon.type === "ranged").map((weapon) => weapon.damage));
+    expect(meleeDamage).toBeGreaterThan(rangedDamage);
   });
 
   it("prevents movement through walls", () => {
@@ -36,16 +41,40 @@ describe("weapons and collision", () => {
 
   it("blocks ranged projectiles with walls", () => {
     const session = standardSession("neon-grid");
-    session.forcePlayerPosition("p1", vec(360, 222));
-    session.forcePlayerPosition("p2", vec(540, 222));
+    const wall = mapByID("neon-grid").walls[0]!;
+    session.forcePlayerPosition("p1", vec(wall.rect.origin.x - 60, wall.rect.origin.y + 20));
+    session.forcePlayerPosition("p2", vec(wall.rect.origin.x + wall.rect.size.x + 80, wall.rect.origin.y + 20));
     const player = session.players.get("p1")!;
     player.weapon = "ranged";
+    player.weaponID = "pulse-rifle";
     player.facing = { x: 1, y: 0 };
 
     session.step([input("p1", { x: 0, y: 0 }, { x: 1, y: 0 }, true)], 0.1);
 
     expect(session.projectiles).toHaveLength(0);
     expect(session.players.get("p2")!.health).toBe(100);
+  });
+
+  it("applies dash movement and cooldown", () => {
+    const session = standardSession("neon-grid");
+    const before = session.players.get("p1")!.position;
+
+    session.step([input("p1", { x: 1, y: 0 }, { x: 1, y: 0 }, false, undefined, true)], 0.1);
+
+    const player = session.players.get("p1")!;
+    expect(distance(before, player.position)).toBeGreaterThan(moveSpeed * 0.1);
+    expect(distance(before, player.position)).toBeLessThanOrEqual(moveSpeed * 0.1 + dashDistance + 1);
+    expect(player.dashCooldownRemaining).toBeGreaterThan(0);
+  });
+
+  it("applies roll cooldown and short invulnerability", () => {
+    const session = standardSession("neon-grid");
+
+    session.step([input("p1", { x: 1, y: 0 }, { x: 1, y: 0 }, false, undefined, false, true)], 0.1);
+
+    const player = session.players.get("p1")!;
+    expect(player.rollCooldownRemaining).toBeGreaterThan(0);
+    expect(player.invulnerabilityRemaining).toBeGreaterThan(0);
   });
 });
 
@@ -90,7 +119,7 @@ describe("safe zone and winner", () => {
   it("damages only players outside the safe zone", () => {
     const session = standardSession("neon-grid");
     session.forcePlayerPosition("p1", vec(18, 18));
-    session.forcePlayerPosition("p2", vec(450, 310));
+    session.forcePlayerPosition("p2", mapByID("neon-grid").safeZone.center);
 
     session.step([], 1);
 
@@ -103,6 +132,7 @@ describe("safe zone and winner", () => {
     session.forcePlayerPosition("p1", vec(240, 240));
     session.forcePlayerPosition("p2", vec(282, 240));
     session.players.get("p1")!.weapon = "melee";
+    session.players.get("p1")!.weaponID = "energy-blade";
     session.players.get("p1")!.facing = { x: 1, y: 0 };
     session.players.get("p2")!.health = 10;
 
@@ -117,12 +147,14 @@ describe("AI", () => {
     const session = standardSession("neon-grid");
     session.forcePlayerPosition("p1", vec(18, 18));
     const snapshot = session.snapshot();
+    snapshot.tick = 18;
     const ai = new AIController("p1", "hard");
 
     const aiInput = ai.input(snapshot, mapByID("neon-grid"));
 
     expect(aiInput.movement.x).toBeGreaterThan(0);
     expect(aiInput.movement.y).toBeGreaterThan(0);
+    expect(aiInput.dashPressed).toBe(true);
   });
 });
 
@@ -136,7 +168,9 @@ function input(
   movement: { x: number; y: number },
   aim = { x: 1, y: 0 },
   firePressed = false,
-  meleeAction?: PlayerInput["meleeAction"]
+  meleeAction?: PlayerInput["meleeAction"],
+  dashPressed = false,
+  rollPressed = false
 ): PlayerInput {
   const result: PlayerInput = {
     playerID,
@@ -147,6 +181,12 @@ function input(
   };
   if (meleeAction) {
     result.meleeAction = meleeAction;
+  }
+  if (dashPressed) {
+    result.dashPressed = true;
+  }
+  if (rollPressed) {
+    result.rollPressed = true;
   }
   return result;
 }

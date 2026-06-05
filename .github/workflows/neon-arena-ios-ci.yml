@@ -1,0 +1,53 @@
+name: Neon Arena iOS CI
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "neon-arena-ios/**"
+      - ".github/workflows/neon-arena-ios-ci.yml"
+  pull_request:
+    paths:
+      - "neon-arena-ios/**"
+      - ".github/workflows/neon-arena-ios-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Swift tests and iOS build
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: neon-arena-ios
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          swift --version
+          xcodebuild -version
+          xcodebuild -showsdks
+
+      - name: Run core tests
+        run: swift test
+
+      - name: List Xcode project
+        run: xcodebuild -list -project NeonArena.xcodeproj
+
+      - name: Build iOS app for simulator
+        run: |
+          xcodebuild \
+            -project NeonArena.xcodeproj \
+            -scheme NeonArena \
+            -configuration Debug \
+            -destination "generic/platform=iOS Simulator" \
+            CODE_SIGNING_ALLOWED=NO \
+            build

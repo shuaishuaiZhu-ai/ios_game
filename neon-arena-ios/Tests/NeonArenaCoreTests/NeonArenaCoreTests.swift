@@ -147,7 +147,8 @@ final class NeonArenaCoreTests: XCTestCase {
     }
 
     func testMockNetworkSessionStoresSynchronizedSafeZoneSnapshot() throws {
-        let session = GameSession(config: standardConfig(mapID: ArenaMaps.neonGrid.id), playerIDs: ["p1", "p2", "p3", "p4"])
+        let config = MatchConfig(mode: .onlineFFA(ruleset: .standard), mapID: ArenaMaps.neonGrid.id, playerCount: 4)
+        let session = GameSession(config: config, playerIDs: ["p1", "p2", "p3", "p4"])
         let network = MockNetworkSession(localPlayerID: "p1", connectedPlayerIDs: ["p2", "p3", "p4"])
         try network.send(.snapshot(session.snapshot()))
 

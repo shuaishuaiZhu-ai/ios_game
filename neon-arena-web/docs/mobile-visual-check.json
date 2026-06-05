@@ -1,0 +1,10 @@
+{
+  "mode": "static-fallback",
+  "width": 844,
+  "height": 390,
+  "hasCanvas": false,
+  "hasHud": true,
+  "hudTextLength": 0,
+  "centerClear": true,
+  "note": "net::ERR_BLOCKED_BY_ADMINISTRATOR at http://localhost:5173"
+}

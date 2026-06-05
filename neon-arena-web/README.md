@@ -1,61 +1,81 @@
-# Neon Arena Web/PWA
+# Neon Arena Web
 
-手机端优先的赛博卡通 2D 多人竞技场游戏。前端使用 Vite + TypeScript + Phaser，在线房间使用 Cloudflare Worker + Durable Object + WebSocket。
+高质量手机横屏 2D 赛博卡通竞技场游戏重构版。项目保留 TypeScript、Phaser、Vite、Cloudflare Worker、Durable Object 和 WebSocket 房间架构，并使用正式图片资产替换旧几何占位图。
 
-## 当前能力
+## 已完成范围
 
-- 单人 AI：简单、中等、困难三档。
-- 在线房间：游客昵称 + 房间码，支持 2/3/4 人。
-- 5 张大地图：Ion Rooftop Circuit、Foundry Overpass Chase、Skyline Garden Ruins、Orbital Dockyard Sprawl、Night Market Crossfire。
-- 大地图缩圈：3 阶段安全区，圈外持续掉血，避免逃跑拖局。
-- 武器拾取：energy blade、shock hammer、pulse rifle、laser carbine。
-- 肉搏模式：禁用武器拾取和射击，保留拳击、飞踢、摔人。
-- 战斗手感：冲刺、翻滚、击退、无敌窗口、武器冷却反馈。
-- 资产驱动渲染：地图、墙体、角色、武器和特效通过 manifest 加载，不再依赖纯几何占位。
-- 手机控制：左摇杆，右侧射击、冲刺、翻滚、拳、踢、摔。
+- 5 张 1600x1100 赛博植物屋顶地图。
+- 4 个可区分的卡通 cyberpunk fighter。
+- 4 类武器：`neon-katana`、`pulse-bow`、`ray-pistol`、`energy-shield-baton`。
+- `GameSession` 作为权威规则源。
+- `CombatEvent` 事件流：投射物、近战、命中、护盾、dash、roll、pickup、安全区阶段。
+- `ArenaScene` 拆分为渲染器、输入组合器和同步控制器。
+- icon-only 移动端 HUD：左摇杆、右动作按钮，不在中心战场显示可读文字。
+- Worker 房间状态支持 2/3/4 人，断线重连，snapshot + events 广播。
+- Vitest 覆盖地图、武器、碰撞、事件、安全区、AI、Worker、资产 manifest 和文字策略。
 
-## 本地命令
+## 安装
 
-```powershell
+```bash
+npm install
+npm run test
+npm run lint
+npm run build
+npm run qa:mobile
+npm run dev
+```
+
+Windows 环境可以使用：
+
+```cmd
 npm.cmd install
 npm.cmd test
 npm.cmd run lint
 npm.cmd run build
+npm.cmd run qa:mobile
 npm.cmd run dev
 ```
 
-`npm.cmd run dev` 只启动前端 Vite。在线房间需要 Worker/Durable Object，可通过 `wrangler dev` 或 Cloudflare 部署验证。
+## Cloudflare 配置
 
-## 资产工作流
+1. 登录 Cloudflare：
 
-- 资产 manifest：`src/game/assets.ts`
-- 当前项目资产：`public/assets/`
-- ImageGen/Pro 提示词：`docs/asset-prompts.md`
+```bash
+npx wrangler login
+```
 
-用户提供的 3 张概念图中，第 1 张作为主视觉目标；第 2 张用于 Foundry 地图方向；第 3 张用于 Skyline 地图方向。后续如果生成了更完整 PNG 或精灵表，只需要把文件放入 `public/assets/` 并更新 manifest key 对应路径。
+或设置环境变量：
 
-## Cloudflare 部署
+```bash
+export CLOUDFLARE_API_TOKEN=your_token
+```
 
-需要先完成以下任一认证方式：
+2. 构建并部署：
 
-- `npx wrangler login`
-- 或设置具备 Worker、Pages、Durable Objects 权限的 `CLOUDFLARE_API_TOKEN`
-
-部署：
-
-```powershell
-npm.cmd run build
+```bash
+npm run build
 npx wrangler deploy
 ```
 
-默认可以先使用 Cloudflare 分配域名。自定义域名不影响首版可玩性，可以后续配置。
+3. 在线房间通过以下路由连接：
 
-## 验证重点
+```text
+/api/rooms/:roomCode?map=map01_skyline_garden_ruins&players=2&ruleset=standard
+```
 
-- `npm.cmd test`
-- `npm.cmd run lint`
-- `npm.cmd run build`
-- Vite 桌面和手机视口截图
-- 单人 AI 完成一局
-- 两个浏览器标签页加入同一在线房间
-- HUD 不遮挡战场中心，角色、武器、墙体、缩圈都能读清
+## 视觉验收
+
+`npm run qa:mobile` 会启动 Vite，使用 Chromium 以 844x390 手机横屏视口截图，并输出：
+
+```text
+docs/mobile-844x390-smoke.png
+docs/mobile-visual-check.json
+```
+
+检查点：
+
+- 中心战场无遮挡。
+- HUD 节点不含可读文字。
+- Canvas 正常渲染。
+- 手机横屏视口尺寸为 844x390。
+

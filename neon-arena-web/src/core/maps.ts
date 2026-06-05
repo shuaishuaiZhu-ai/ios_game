@@ -5,170 +5,214 @@ export function safeZoneState(config: SafeZoneConfig, elapsedTime: number) {
   const rawPhase = Math.floor(elapsedTime / config.phaseDuration);
   const phase = Math.min(Math.max(rawPhase, 0), config.phaseRadii.length - 1);
   const nextShrinkTime = phase === config.phaseRadii.length - 1 ? config.phaseRadii.length * config.phaseDuration : (phase + 1) * config.phaseDuration;
-
-  return {
-    phase,
-    center: config.center,
-    radius: config.phaseRadii[phase]!,
-    nextShrinkTime,
-    outsideDamagePerSecond: config.outsideDamagePerSecond
-  };
+  return { phase, center: config.center, radius: config.phaseRadii[phase]!, nextShrinkTime, outsideDamagePerSecond: config.outsideDamagePerSecond };
 }
 
-const standardSafeZone = (centerX: number, centerY: number, radii: [number, number, number], damage = 9): SafeZoneConfig => ({
-  center: vec(centerX, centerY),
-  phaseRadii: radii,
-  phaseDuration: 58,
-  outsideDamagePerSecond: damage
-});
-
-export const neonGrid: MapDefinition = {
-  id: "neon-grid",
-  name: "Ion Rooftop Circuit",
-  size: vec(1600, 1100),
-  art: { backgroundKey: "map-ion-rooftop", wallKey: "wall-ion", accent: "#00e5ff", mood: "rooftop circuit" },
-  walls: [
-    { id: "north-loop-cover", rect: rect(520, 210, 360, 42) },
-    { id: "south-loop-cover", rect: rect(680, 848, 360, 42) },
-    { id: "left-core-cover", rect: rect(300, 432, 54, 250) },
-    { id: "right-core-cover", rect: rect(1246, 432, 54, 250) },
-    { id: "center-bridge-a", rect: rect(680, 470, 250, 42) },
-    { id: "center-bridge-b", rect: rect(590, 608, 250, 42) },
-    { id: "vent-a", rect: rect(430, 700, 120, 60) },
-    { id: "vent-b", rect: rect(1050, 340, 120, 60) }
-  ],
-  spawnPoints: [vec(160, 160), vec(1440, 940), vec(170, 930), vec(1430, 170)],
-  weaponSpawnPoints: [
-    { id: "grid-blade-a", position: vec(448, 548), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "grid-blade-b", position: vec(1152, 548), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "grid-hammer-a", position: vec(800, 320), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "grid-hammer-b", position: vec(800, 780), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "grid-rifle-a", position: vec(512, 300), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "grid-rifle-b", position: vec(1088, 800), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "grid-carbine-a", position: vec(1050, 550), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] },
-    { id: "grid-carbine-b", position: vec(550, 550), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] }
-  ],
-  safeZone: standardSafeZone(800, 550, [780, 520, 290], 9)
-};
-
-export const foundryLanes: MapDefinition = {
-  id: "foundry-lanes",
-  name: "Foundry Overpass Chase",
-  size: vec(1600, 1100),
-  art: { backgroundKey: "map-foundry-overpass", wallKey: "wall-foundry", accent: "#ff5a2e", mood: "industrial overpass" },
-  walls: [
-    { id: "foundry-north-lane", rect: rect(250, 190, 610, 46) },
-    { id: "foundry-north-gap", rect: rect(1030, 190, 330, 46) },
-    { id: "foundry-south-left", rect: rect(250, 854, 340, 46) },
-    { id: "foundry-south-right", rect: rect(760, 854, 610, 46) },
-    { id: "foundry-choke-a", rect: rect(520, 360, 58, 280) },
-    { id: "foundry-choke-b", rect: rect(1022, 460, 58, 280) },
-    { id: "foundry-crane-a", rect: rect(690, 405, 250, 42) },
-    { id: "foundry-crane-b", rect: rect(600, 680, 250, 42) }
-  ],
-  spawnPoints: [vec(150, 550), vec(1450, 550), vec(800, 120), vec(800, 980)],
-  weaponSpawnPoints: [
-    { id: "foundry-hammer-a", position: vec(382, 550), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "foundry-hammer-b", position: vec(1218, 550), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "foundry-blade-a", position: vec(800, 330), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "foundry-blade-b", position: vec(800, 770), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "foundry-carbine-a", position: vec(500, 760), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] },
-    { id: "foundry-carbine-b", position: vec(1100, 300), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] },
-    { id: "foundry-rifle-a", position: vec(620, 550), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "foundry-rifle-b", position: vec(980, 550), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] }
-  ],
-  safeZone: standardSafeZone(800, 550, [760, 500, 270], 10)
-};
-
-export const skylineRuins: MapDefinition = {
-  id: "skyline-ruins",
+export const map01_skyline_garden_ruins: MapDefinition = {
+  id: "map01_skyline_garden_ruins",
   name: "Skyline Garden Ruins",
   size: vec(1600, 1100),
-  art: { backgroundKey: "map-skyline-garden", wallKey: "wall-garden", accent: "#38f5d4", mood: "botanical ruins" },
+  art: {
+    backgroundKey: "map-map01_skyline_garden_ruins",
+    thumbnailKey: "thumb-map01_skyline_garden_ruins",
+    accent: "#38f5d4",
+    mood: "cyber botanical rooftop"
+  },
   walls: [
-    { id: "glasshouse-a", rect: rect(380, 250, 70, 260) },
-    { id: "glasshouse-b", rect: rect(1150, 590, 70, 260) },
-    { id: "pool-bridge-a", rect: rect(650, 390, 310, 44) },
-    { id: "pool-bridge-b", rect: rect(610, 680, 310, 44) },
-    { id: "hedge-a", rect: rect(230, 780, 280, 46) },
-    { id: "hedge-b", rect: rect(1090, 224, 280, 46) },
-    { id: "ruin-column-a", rect: rect(540, 560, 90, 90) },
-    { id: "ruin-column-b", rect: rect(980, 460, 90, 90) }
+    { id: "map01_skyline_garden_ruins-c1", kind: "solid", rect: rect(615, 420, 260, 82) },
+    { id: "map01_skyline_garden_ruins-c2", kind: "solid", rect: rect(1055, 390, 230, 98) },
+    { id: "map01_skyline_garden_ruins-c3", kind: "solid", rect: rect(455, 704, 210, 76) },
+    { id: "map01_skyline_garden_ruins-c4", kind: "solid", rect: rect(250, 362, 120, 160) },
+    { id: "map01_skyline_garden_ruins-c5", kind: "solid", rect: rect(1005, 700, 250, 76) },
+    { id: "map01_skyline_garden_ruins-c6", kind: "solid", rect: rect(735, 205, 250, 64) },
+    { id: "map01_skyline_garden_ruins-c7", kind: "softCover", rect: rect(522, 304, 210, 62) },
+    { id: "map01_skyline_garden_ruins-c8", kind: "softCover", rect: rect(330, 800, 260, 70) },
+    { id: "map01_skyline_garden_ruins-c9", kind: "softCover", rect: rect(958, 260, 230, 72) },
+    { id: "map01_skyline_garden_ruins-c10", kind: "softCover", rect: rect(1160, 800, 180, 60) },
+    { id: "map01_skyline_garden_ruins-c11", kind: "softCover", rect: rect(190, 620, 170, 64) },
   ],
-  spawnPoints: [vec(170, 170), vec(1430, 930), vec(180, 930), vec(1420, 160)],
+  spawnPoints: [
+    vec(378, 280),
+    vec(1210, 315),
+    vec(302, 842),
+    vec(1105, 832),
+  ],
   weaponSpawnPoints: [
-    { id: "sky-blade-a", position: vec(570, 540), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "sky-blade-b", position: vec(1110, 560), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "sky-hammer-a", position: vec(800, 250), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "sky-hammer-b", position: vec(800, 850), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "sky-rifle-a", position: vec(380, 610), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "sky-rifle-b", position: vec(1220, 490), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "sky-carbine-a", position: vec(630, 830), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] },
-    { id: "sky-carbine-b", position: vec(970, 270), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] }
+    { id: "map01_skyline_garden_ruins-w1", position: vec(438, 444), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map01_skyline_garden_ruins-w2", position: vec(965, 432), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map01_skyline_garden_ruins-w3", position: vec(790, 705), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map01_skyline_garden_ruins-w4", position: vec(1050, 822), allowedTypes: ["utility"], weaponIDs: ["energy-shield-baton"] },
+    { id: "map01_skyline_garden_ruins-w5", position: vec(590, 252), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
   ],
-  safeZone: standardSafeZone(800, 550, [790, 540, 310], 8)
+  safeZone: { center: vec(800, 550), phaseRadii: [500, 322, 145], phaseDuration: 45, outsideDamagePerSecond: 9 }
 };
 
-export const dockyardSprawl: MapDefinition = {
-  id: "dockyard-sprawl",
-  name: "Orbital Dockyard Sprawl",
-  size: vec(1700, 1120),
-  art: { backgroundKey: "map-dockyard-sprawl", wallKey: "wall-ion", accent: "#7dd3fc", mood: "orbital cargo dock" },
-  walls: [
-    { id: "cargo-a", rect: rect(330, 240, 300, 54) },
-    { id: "cargo-b", rect: rect(1030, 826, 360, 54) },
-    { id: "container-a", rect: rect(260, 520, 64, 300) },
-    { id: "container-b", rect: rect(1380, 250, 64, 300) },
-    { id: "dock-core-a", rect: rect(690, 470, 130, 64) },
-    { id: "dock-core-b", rect: rect(880, 586, 130, 64) },
-    { id: "cargo-c", rect: rect(700, 230, 240, 44) },
-    { id: "cargo-d", rect: rect(720, 870, 240, 44) }
-  ],
-  spawnPoints: [vec(160, 180), vec(1540, 940), vec(180, 940), vec(1520, 180)],
-  weaponSpawnPoints: [
-    { id: "dock-blade-a", position: vec(480, 560), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "dock-blade-b", position: vec(1220, 560), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "dock-hammer-a", position: vec(850, 360), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "dock-hammer-b", position: vec(850, 760), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "dock-rifle-a", position: vec(390, 880), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "dock-rifle-b", position: vec(1310, 240), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "dock-carbine-a", position: vec(620, 790), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] },
-    { id: "dock-carbine-b", position: vec(1080, 330), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] }
-  ],
-  safeZone: standardSafeZone(850, 560, [820, 560, 320], 9)
-};
-
-export const marketCrossfire: MapDefinition = {
-  id: "market-crossfire",
-  name: "Night Market Crossfire",
+export const map02_transit_skybridge_hydroponics: MapDefinition = {
+  id: "map02_transit_skybridge_hydroponics",
+  name: "Transit Skybridge Hydroponics",
   size: vec(1600, 1100),
-  art: { backgroundKey: "map-market-crossfire", wallKey: "wall-market", accent: "#f472b6", mood: "neon market" },
+  art: {
+    backgroundKey: "map-map02_transit_skybridge_hydroponics",
+    thumbnailKey: "thumb-map02_transit_skybridge_hydroponics",
+    accent: "#38f5d4",
+    mood: "cyber botanical rooftop"
+  },
   walls: [
-    { id: "market-stall-a", rect: rect(280, 300, 260, 48) },
-    { id: "market-stall-b", rect: rect(1060, 300, 260, 48) },
-    { id: "market-stall-c", rect: rect(280, 752, 260, 48) },
-    { id: "market-stall-d", rect: rect(1060, 752, 260, 48) },
-    { id: "center-kiosk-a", rect: rect(700, 470, 80, 210) },
-    { id: "center-kiosk-b", rect: rect(820, 420, 80, 210) },
-    { id: "sign-wall-a", rect: rect(550, 220, 280, 42) },
-    { id: "sign-wall-b", rect: rect(770, 838, 280, 42) }
+    { id: "map02_transit_skybridge_hydroponics-c1", kind: "solid", rect: rect(480, 230, 130, 270) },
+    { id: "map02_transit_skybridge_hydroponics-c2", kind: "solid", rect: rect(800, 242, 420, 66) },
+    { id: "map02_transit_skybridge_hydroponics-c3", kind: "solid", rect: rect(810, 752, 390, 72) },
+    { id: "map02_transit_skybridge_hydroponics-c4", kind: "solid", rect: rect(374, 700, 110, 200) },
+    { id: "map02_transit_skybridge_hydroponics-c5", kind: "solid", rect: rect(1220, 514, 130, 220) },
+    { id: "map02_transit_skybridge_hydroponics-c6", kind: "softCover", rect: rect(215, 330, 190, 62) },
+    { id: "map02_transit_skybridge_hydroponics-c7", kind: "softCover", rect: rect(650, 420, 160, 58) },
+    { id: "map02_transit_skybridge_hydroponics-c8", kind: "softCover", rect: rect(645, 610, 230, 62) },
+    { id: "map02_transit_skybridge_hydroponics-c9", kind: "softCover", rect: rect(1050, 320, 200, 62) },
+    { id: "map02_transit_skybridge_hydroponics-c10", kind: "softCover", rect: rect(213, 815, 260, 74) },
   ],
-  spawnPoints: [vec(170, 550), vec(1430, 550), vec(800, 140), vec(800, 960)],
+  spawnPoints: [
+    vec(338, 250),
+    vec(1255, 250),
+    vec(328, 930),
+    vec(1220, 850),
+  ],
   weaponSpawnPoints: [
-    { id: "market-blade-a", position: vec(600, 550), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "market-blade-b", position: vec(1000, 550), allowedTypes: ["melee"], weaponIDs: ["energy-blade"] },
-    { id: "market-hammer-a", position: vec(430, 500), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "market-hammer-b", position: vec(1170, 600), allowedTypes: ["melee"], weaponIDs: ["shock-hammer"] },
-    { id: "market-rifle-a", position: vec(560, 820), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "market-rifle-b", position: vec(1040, 280), allowedTypes: ["ranged"], weaponIDs: ["pulse-rifle"] },
-    { id: "market-carbine-a", position: vec(520, 430), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] },
-    { id: "market-carbine-b", position: vec(1080, 670), allowedTypes: ["ranged"], weaponIDs: ["laser-carbine"] }
+    { id: "map02_transit_skybridge_hydroponics-w1", position: vec(700, 300), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map02_transit_skybridge_hydroponics-w2", position: vec(758, 548), allowedTypes: ["utility"], weaponIDs: ["energy-shield-baton"] },
+    { id: "map02_transit_skybridge_hydroponics-w3", position: vec(321, 705), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map02_transit_skybridge_hydroponics-w4", position: vec(1160, 575), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map02_transit_skybridge_hydroponics-w5", position: vec(1024, 858), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
   ],
-  safeZone: standardSafeZone(800, 550, [770, 510, 285], 9)
+  safeZone: { center: vec(800, 560), phaseRadii: [520, 332, 145], phaseDuration: 45, outsideDamagePerSecond: 9 }
 };
 
-export const arenaMaps = [neonGrid, foundryLanes, skylineRuins, dockyardSprawl, marketCrossfire] as const;
+export const map03_reactor_orchid_courtyard: MapDefinition = {
+  id: "map03_reactor_orchid_courtyard",
+  name: "Reactor Orchid Courtyard",
+  size: vec(1600, 1100),
+  art: {
+    backgroundKey: "map-map03_reactor_orchid_courtyard",
+    thumbnailKey: "thumb-map03_reactor_orchid_courtyard",
+    accent: "#38f5d4",
+    mood: "cyber botanical rooftop"
+  },
+  walls: [
+    { id: "map03_reactor_orchid_courtyard-c1", kind: "solid", rect: rect(635, 312, 330, 75) },
+    { id: "map03_reactor_orchid_courtyard-c2", kind: "solid", rect: rect(640, 715, 325, 75) },
+    { id: "map03_reactor_orchid_courtyard-c3", kind: "solid", rect: rect(386, 480, 90, 230) },
+    { id: "map03_reactor_orchid_courtyard-c4", kind: "solid", rect: rect(1120, 455, 92, 240) },
+    { id: "map03_reactor_orchid_courtyard-c5", kind: "solid", rect: rect(252, 742, 245, 70) },
+    { id: "map03_reactor_orchid_courtyard-c6", kind: "solid", rect: rect(1105, 230, 230, 64) },
+    { id: "map03_reactor_orchid_courtyard-c7", kind: "softCover", rect: rect(570, 472, 110, 150) },
+    { id: "map03_reactor_orchid_courtyard-c8", kind: "softCover", rect: rect(920, 470, 110, 150) },
+    { id: "map03_reactor_orchid_courtyard-c9", kind: "softCover", rect: rect(708, 445, 180, 64) },
+    { id: "map03_reactor_orchid_courtyard-c10", kind: "softCover", rect: rect(716, 626, 175, 64) },
+    { id: "map03_reactor_orchid_courtyard-c11", kind: "softCover", rect: rect(265, 244, 205, 65) },
+    { id: "map03_reactor_orchid_courtyard-c12", kind: "softCover", rect: rect(1070, 795, 230, 70) },
+  ],
+  spawnPoints: [
+    vec(438, 335),
+    vec(1152, 333),
+    vec(430, 835),
+    vec(1162, 775),
+  ],
+  weaponSpawnPoints: [
+    { id: "map03_reactor_orchid_courtyard-w1", position: vec(800, 548), allowedTypes: ["utility"], weaponIDs: ["energy-shield-baton"] },
+    { id: "map03_reactor_orchid_courtyard-w2", position: vec(519, 610), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map03_reactor_orchid_courtyard-w3", position: vec(1065, 596), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map03_reactor_orchid_courtyard-w4", position: vec(705, 270), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map03_reactor_orchid_courtyard-w5", position: vec(892, 827), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+  ],
+  safeZone: { center: vec(800, 550), phaseRadii: [500, 322, 145], phaseDuration: 45, outsideDamagePerSecond: 9 }
+};
+
+export const map04_rainmarket_terrace_grove: MapDefinition = {
+  id: "map04_rainmarket_terrace_grove",
+  name: "Rainmarket Terrace Grove",
+  size: vec(1600, 1100),
+  art: {
+    backgroundKey: "map-map04_rainmarket_terrace_grove",
+    thumbnailKey: "thumb-map04_rainmarket_terrace_grove",
+    accent: "#38f5d4",
+    mood: "cyber botanical rooftop"
+  },
+  walls: [
+    { id: "map04_rainmarket_terrace_grove-c1", kind: "solid", rect: rect(280, 285, 270, 78) },
+    { id: "map04_rainmarket_terrace_grove-c2", kind: "solid", rect: rect(650, 235, 115, 250) },
+    { id: "map04_rainmarket_terrace_grove-c3", kind: "solid", rect: rect(960, 250, 120, 245) },
+    { id: "map04_rainmarket_terrace_grove-c4", kind: "solid", rect: rect(1050, 685, 290, 78) },
+    { id: "map04_rainmarket_terrace_grove-c5", kind: "solid", rect: rect(475, 780, 280, 70) },
+    { id: "map04_rainmarket_terrace_grove-c6", kind: "solid", rect: rect(280, 530, 170, 75) },
+    { id: "map04_rainmarket_terrace_grove-c7", kind: "softCover", rect: rect(570, 506, 310, 80) },
+    { id: "map04_rainmarket_terrace_grove-c8", kind: "softCover", rect: rect(825, 520, 120, 190) },
+    { id: "map04_rainmarket_terrace_grove-c9", kind: "softCover", rect: rect(205, 760, 180, 62) },
+    { id: "map04_rainmarket_terrace_grove-c10", kind: "softCover", rect: rect(1165, 332, 160, 58) },
+    { id: "map04_rainmarket_terrace_grove-c11", kind: "softCover", rect: rect(1035, 827, 200, 58) },
+  ],
+  spawnPoints: [
+    vec(360, 235),
+    vec(1190, 300),
+    vec(405, 820),
+    vec(1275, 815),
+  ],
+  weaponSpawnPoints: [
+    { id: "map04_rainmarket_terrace_grove-w1", position: vec(610, 400), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map04_rainmarket_terrace_grove-w2", position: vec(930, 415), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map04_rainmarket_terrace_grove-w3", position: vec(758, 674), allowedTypes: ["utility"], weaponIDs: ["energy-shield-baton"] },
+    { id: "map04_rainmarket_terrace_grove-w4", position: vec(1120, 800), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map04_rainmarket_terrace_grove-w5", position: vec(355, 655), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+  ],
+  safeZone: { center: vec(800, 560), phaseRadii: [515, 330, 145], phaseDuration: 45, outsideDamagePerSecond: 9 }
+};
+
+export const map05_cloud_spire_arboretum: MapDefinition = {
+  id: "map05_cloud_spire_arboretum",
+  name: "Cloud Spire Arboretum",
+  size: vec(1600, 1100),
+  art: {
+    backgroundKey: "map-map05_cloud_spire_arboretum",
+    thumbnailKey: "thumb-map05_cloud_spire_arboretum",
+    accent: "#38f5d4",
+    mood: "cyber botanical rooftop"
+  },
+  walls: [
+    { id: "map05_cloud_spire_arboretum-c1", kind: "solid", rect: rect(545, 250, 240, 70) },
+    { id: "map05_cloud_spire_arboretum-c2", kind: "solid", rect: rect(880, 250, 260, 70) },
+    { id: "map05_cloud_spire_arboretum-c3", kind: "solid", rect: rect(700, 472, 190, 150) },
+    { id: "map05_cloud_spire_arboretum-c4", kind: "solid", rect: rect(1060, 570, 235, 75) },
+    { id: "map05_cloud_spire_arboretum-c5", kind: "solid", rect: rect(300, 602, 240, 80) },
+    { id: "map05_cloud_spire_arboretum-c6", kind: "solid", rect: rect(520, 805, 160, 70) },
+    { id: "map05_cloud_spire_arboretum-c7", kind: "solid", rect: rect(890, 802, 230, 72) },
+    { id: "map05_cloud_spire_arboretum-c8", kind: "softCover", rect: rect(270, 260, 165, 64) },
+    { id: "map05_cloud_spire_arboretum-c9", kind: "softCover", rect: rect(1160, 280, 190, 68) },
+    { id: "map05_cloud_spire_arboretum-c10", kind: "softCover", rect: rect(492, 467, 140, 160) },
+    { id: "map05_cloud_spire_arboretum-c11", kind: "softCover", rect: rect(958, 455, 140, 165) },
+    { id: "map05_cloud_spire_arboretum-c12", kind: "softCover", rect: rect(255, 812, 215, 64) },
+    { id: "map05_cloud_spire_arboretum-c13", kind: "softCover", rect: rect(1170, 760, 170, 64) },
+  ],
+  spawnPoints: [
+    vec(382, 200),
+    vec(1210, 250),
+    vec(362, 785),
+    vec(1220, 873),
+  ],
+  weaponSpawnPoints: [
+    { id: "map05_cloud_spire_arboretum-w1", position: vec(919, 548), allowedTypes: ["utility"], weaponIDs: ["energy-shield-baton"] },
+    { id: "map05_cloud_spire_arboretum-w2", position: vec(423, 365), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map05_cloud_spire_arboretum-w3", position: vec(1168, 395), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map05_cloud_spire_arboretum-w4", position: vec(383, 706), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map05_cloud_spire_arboretum-w5", position: vec(1080, 718), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+  ],
+  safeZone: { center: vec(805, 550), phaseRadii: [510, 328, 145], phaseDuration: 45, outsideDamagePerSecond: 9 }
+};
+
+export const arenaMaps = [
+  map01_skyline_garden_ruins,
+  map02_transit_skybridge_hydroponics,
+  map03_reactor_orchid_courtyard,
+  map04_rainmarket_terrace_grove,
+  map05_cloud_spire_arboretum,
+] as const;
 
 export function mapByID(id: string): MapDefinition {
-  return arenaMaps.find((map) => map.id === id) ?? neonGrid;
+  return arenaMaps.find((map) => map.id === id) ?? arenaMaps[0]!;
 }

@@ -2,9 +2,10 @@ import type { ArenaRect, Vector2 } from "./geometry";
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type Ruleset = "standard" | "meleeOnly";
-export type WeaponType = "melee" | "ranged";
-export type WeaponID = "energy-blade" | "shock-hammer" | "pulse-rifle" | "laser-carbine";
+export type WeaponType = "melee" | "ranged" | "utility";
+export type WeaponID = "neon-katana" | "pulse-bow" | "ray-pistol" | "energy-shield-baton";
 export type MeleeAction = "punch" | "flyingKick" | "throw";
+
 export type GameMode =
   | { kind: "single"; difficulty: Difficulty; ruleset: Ruleset }
   | { kind: "onlineDuel"; ruleset: Ruleset }
@@ -13,8 +14,7 @@ export type GameMode =
 export interface WeaponDefinition {
   id: WeaponID;
   type: WeaponType;
-  category: "light" | "heavy" | "precision" | "rapid";
-  name: string;
+  category: "light" | "heavy" | "precision" | "rapid" | "defense";
   damage: number;
   range: number;
   cooldown: number;
@@ -22,6 +22,8 @@ export interface WeaponDefinition {
   knockback: number;
   spread: number;
   pickupWeight: number;
+  blockAngle?: number;
+  blockDuration?: number;
 }
 
 export interface MatchConfig {
@@ -39,6 +41,7 @@ export interface PlayerInput {
   firePressed: boolean;
   dashPressed?: boolean;
   rollPressed?: boolean;
+  shieldPressed?: boolean;
   meleeAction?: MeleeAction;
   tick: number;
 }
@@ -56,12 +59,15 @@ export interface PlayerState {
   dashCooldownRemaining: number;
   rollCooldownRemaining: number;
   invulnerabilityRemaining: number;
+  shieldRemaining: number;
 }
 
 export interface ProjectileState {
   id: string;
   ownerID: string;
+  weaponID: WeaponID;
   position: Vector2;
+  previousPosition: Vector2;
   velocity: Vector2;
   damage: number;
   knockback: number;
@@ -90,6 +96,17 @@ export interface SafeZoneState {
   outsideDamagePerSecond: number;
 }
 
+export type CombatEvent =
+  | { type: "projectile-fired"; tick: number; playerID: string; weaponID: WeaponID; from: Vector2; to: Vector2 }
+  | { type: "projectile-hit"; tick: number; playerID: string; targetID?: string; weaponID: WeaponID; position: Vector2 }
+  | { type: "melee-swing"; tick: number; playerID: string; weaponID?: WeaponID; action?: MeleeAction; position: Vector2; facing: Vector2 }
+  | { type: "melee-hit"; tick: number; playerID: string; targetID: string; weaponID?: WeaponID; action?: MeleeAction; position: Vector2 }
+  | { type: "shield-block"; tick: number; playerID: string; position: Vector2 }
+  | { type: "dash"; tick: number; playerID: string; from: Vector2; to: Vector2 }
+  | { type: "roll"; tick: number; playerID: string; from: Vector2; to: Vector2 }
+  | { type: "pickup"; tick: number; playerID: string; weaponID: WeaponID; position: Vector2 }
+  | { type: "safe-zone-phase"; tick: number; phase: number; radius: number };
+
 export interface MatchSnapshot {
   tick: number;
   players: PlayerState[];
@@ -97,12 +114,16 @@ export interface MatchSnapshot {
   droppedWeapons: DroppedWeapon[];
   safeZone: SafeZoneState;
   eliminations: Elimination[];
+  events: CombatEvent[];
   winnerID?: string;
 }
+
+export type ColliderKind = "solid" | "softCover" | "projectileOnly";
 
 export interface ArenaWall {
   id: string;
   rect: ArenaRect;
+  kind: ColliderKind;
 }
 
 export interface WeaponSpawnPoint {
@@ -125,7 +146,7 @@ export interface MapDefinition {
   size: Vector2;
   art: {
     backgroundKey: string;
-    wallKey: string;
+    thumbnailKey: string;
     accent: string;
     mood: string;
   };
@@ -142,74 +163,74 @@ export type NetworkMessage =
   | { type: "ready"; playerID: string }
   | { type: "start"; config: MatchConfig; playerIDs: string[]; nicknames: Record<string, string> }
   | { type: "input"; input: PlayerInput }
-  | { type: "snapshot"; snapshot: MatchSnapshot }
+  | { type: "snapshot"; snapshot: MatchSnapshot; events: CombatEvent[] }
   | { type: "playerDisconnected"; playerID: string }
   | { type: "error"; message: string };
 
-export const energyBlade: WeaponDefinition = {
-  id: "energy-blade",
+export const neonKatana: WeaponDefinition = {
+  id: "neon-katana",
   type: "melee",
   category: "light",
-  name: "Energy Blade",
   damage: 34,
-  range: 48,
-  cooldown: 0.45,
+  range: 58,
+  cooldown: 0.42,
   projectileSpeed: 0,
-  knockback: 44,
+  knockback: 52,
   spread: 0,
   pickupWeight: 3
 };
 
-export const shockHammer: WeaponDefinition = {
-  id: "shock-hammer",
-  type: "melee",
-  category: "heavy",
-  name: "Shock Hammer",
-  damage: 44,
-  range: 42,
-  cooldown: 0.72,
-  projectileSpeed: 0,
-  knockback: 78,
-  spread: 0,
-  pickupWeight: 2
-};
-
-export const pulseRifle: WeaponDefinition = {
-  id: "pulse-rifle",
-  type: "ranged",
-  category: "rapid",
-  name: "Pulse Rifle",
-  damage: 16,
-  range: 420,
-  cooldown: 0.32,
-  projectileSpeed: 560,
-  knockback: 22,
-  spread: 0.04,
-  pickupWeight: 3
-};
-
-export const laserCarbine: WeaponDefinition = {
-  id: "laser-carbine",
+export const pulseBow: WeaponDefinition = {
+  id: "pulse-bow",
   type: "ranged",
   category: "precision",
-  name: "Laser Carbine",
-  damage: 22,
-  range: 540,
-  cooldown: 0.5,
-  projectileSpeed: 680,
-  knockback: 30,
-  spread: 0.015,
+  damage: 28,
+  range: 620,
+  cooldown: 0.68,
+  projectileSpeed: 640,
+  knockback: 34,
+  spread: 0.012,
   pickupWeight: 2
 };
 
-export const weaponDefinitions = [energyBlade, shockHammer, pulseRifle, laserCarbine] as const;
+export const rayPistol: WeaponDefinition = {
+  id: "ray-pistol",
+  type: "ranged",
+  category: "rapid",
+  damage: 14,
+  range: 430,
+  cooldown: 0.26,
+  projectileSpeed: 760,
+  knockback: 18,
+  spread: 0.05,
+  pickupWeight: 3
+};
+
+export const energyShieldBaton: WeaponDefinition = {
+  id: "energy-shield-baton",
+  type: "utility",
+  category: "defense",
+  damage: 22,
+  range: 46,
+  cooldown: 0.54,
+  projectileSpeed: 0,
+  knockback: 62,
+  spread: 0,
+  pickupWeight: 2,
+  blockAngle: 0.22,
+  blockDuration: 0.45
+};
+
+export const weaponDefinitions = [neonKatana, pulseBow, rayPistol, energyShieldBaton] as const;
 
 export function weaponByID(id: WeaponID): WeaponDefinition {
-  return weaponDefinitions.find((weapon) => weapon.id === id) ?? energyBlade;
+  return weaponDefinitions.find((weapon) => weapon.id === id) ?? neonKatana;
 }
 
 export function defaultWeaponForType(type: WeaponType): WeaponID {
-  return type === "melee" ? "energy-blade" : "pulse-rifle";
+  if (type === "melee") return "neon-katana";
+  if (type === "utility") return "energy-shield-baton";
+  return "ray-pistol";
 }
 
 export function rulesetForMode(mode: GameMode): Ruleset {

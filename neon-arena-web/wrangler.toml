@@ -1,21 +1,23 @@
 name = "neon-arena-room-worker"
 main = "src/worker/index.ts"
 compatibility_date = "2026-06-05"
-compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 
-[durable_objects]
-bindings = [
-  { name = "NEON_ROOM", class_name = "NeonRoom" }
-]
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "NeonArenaRoom"
 
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["NeonRoom"]
 
-[assets]
-directory = "./dist"
-binding = "ASSETS"
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["NeonArenaRoom"]
 
 [[routes]]
 pattern = "ctrlclaw.online/*"

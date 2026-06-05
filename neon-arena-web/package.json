@@ -1,24 +1,29 @@
 {
   "name": "neon-arena-web",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc -p tsconfig.app.json --noEmit && vite build && tsc -p tsconfig.worker.json --noEmit",
-    "test": "vitest run",
-    "lint": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.worker.json --noEmit",
+    "build": "vite build",
     "preview": "vite preview --host 0.0.0.0",
+    "test": "vitest run",
+    "lint": "npm run typecheck",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.worker.json",
+    "qa:mobile": "node scripts/mobile-visual-check.mjs",
     "deploy:worker": "wrangler deploy"
   },
   "dependencies": {
-    "phaser": "^3.90.0"
+    "@cloudflare/workers-types": "latest",
+    "phaser": "latest"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260601.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.2.4",
-    "vitest": "^4.0.15",
-    "wrangler": "^4.53.0"
+    "@types/node": "^25.9.1",
+    "@vitejs/plugin-basic-ssl": "latest",
+    "puppeteer-core": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "wrangler": "latest"
   }
 }

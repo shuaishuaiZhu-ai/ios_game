@@ -1,174 +1,65 @@
-import { DurableObject } from "cloudflare:workers";
+import { decodeMessage, encodeMessage } from "../network/protocol";
+import { RoomState } from "./roomState";
 import type { NetworkMessage, Ruleset } from "../core/models";
-import { normalizeRoomCode, RoomState } from "./roomState";
 
 export interface Env {
-  NEON_ROOM: DurableObjectNamespace;
+  ROOMS: DurableObjectNamespace;
   ASSETS: Fetcher;
-}
-
-interface SocketAttachment {
-  playerID: string;
-  nickname: string;
-}
-
-interface RoomInit {
-  roomCode: string;
-  mapID: string;
-  ruleset: Ruleset;
-  targetPlayers: number;
-  seed: number;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-
-    if (url.pathname === "/api/health") {
-      return json({ ok: true, service: "neon-arena-room-worker" });
+    if (url.pathname === "/api/health") return Response.json({ ok: true });
+    const match = url.pathname.match(/^\/api\/rooms\/([^/]+)$/);
+    if (match) {
+      const roomCode = match[1]!;
+      const id = env.ROOMS.idFromName(roomCode);
+      return env.ROOMS.get(id).fetch(request);
     }
-
-    const roomMatch = /^\/api\/rooms\/([A-Z0-9]{1,8})$/i.exec(url.pathname);
-    if (roomMatch) {
-      if (request.headers.get("Upgrade") !== "websocket") {
-        return new Response("Expected WebSocket", { status: 426 });
-      }
-
-      const roomCode = normalizeRoomCode(roomMatch[1]!);
-      const stub = env.NEON_ROOM.getByName(roomCode);
-      const roomURL = new URL(request.url);
-      roomURL.searchParams.set("roomCode", roomCode);
-      return stub.fetch(new Request(roomURL, request));
-    }
-
     return env.ASSETS.fetch(request);
   }
-} satisfies ExportedHandler<Env>;
+};
 
-export class NeonRoom extends DurableObject<Env> {
-  private room: RoomState | undefined;
+export class NeonArenaRoom {
+  private state: RoomState | undefined;
+  private sockets = new Set<WebSocket>();
 
-  constructor(ctx: DurableObjectState, env: Env) {
-    super(ctx, env);
-    this.ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
-  }
+  constructor(private readonly durableState: DurableObjectState) {}
 
   async fetch(request: Request): Promise<Response> {
-    if (request.headers.get("Upgrade") !== "websocket") {
-      return new Response("Expected WebSocket", { status: 426 });
-    }
-
+    const upgrade = request.headers.get("Upgrade");
+    if (upgrade !== "websocket") return new Response("Expected websocket", { status: 426 });
     const url = new URL(request.url);
-    const playerID = cleanID(url.searchParams.get("playerID") ?? "");
-    const nickname = cleanNickname(url.searchParams.get("nickname") ?? "Player");
-    if (!playerID) {
-      return json({ error: "Missing playerID" }, 400);
-    }
-
-    const init = roomInitFromURL(url);
-    if (!this.room) {
-      this.room = new RoomState(init);
-    }
-
-    const messages = this.room.join({ id: playerID, nickname });
-    if (messages.some((message) => message.type === "error")) {
-      return json({ error: "Room unavailable" }, 409);
-    }
-
     const pair = new WebSocketPair();
-    const client = pair[0];
-    const server = pair[1];
-    server.serializeAttachment({ playerID, nickname } satisfies SocketAttachment);
-    this.ctx.acceptWebSocket(server);
-
-    server.send(encodeMessages(messages.filter((message) => message.type === "joined")));
-    this.broadcast(messages.filter((message) => message.type !== "joined"));
-
+    const [client, server] = Object.values(pair);
+    server.accept();
+    this.sockets.add(server);
+    const roomCode = url.pathname.split("/").pop() ?? "ROOM";
+    const mapID = url.searchParams.get("map") ?? "map01_skyline_garden_ruins";
+    const targetPlayers = Number(url.searchParams.get("players") ?? 2);
+    const ruleset = (url.searchParams.get("ruleset") ?? "standard") as Ruleset;
+    this.state ??= new RoomState({ roomCode, mapID, ruleset, targetPlayers, seed: 1 });
+    server.addEventListener("message", (event) => this.handle(server, String(event.data)));
+    server.addEventListener("close", () => this.sockets.delete(server));
+    server.addEventListener("error", () => this.sockets.delete(server));
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
-    if (!this.room || typeof message !== "string") {
-      return;
-    }
-
-    const decoded = parseMessage(message);
-    if (!decoded) {
-      ws.send(encode({ type: "error", message: "消息格式错误。" }));
-      return;
-    }
-
-    if (decoded.type === "input") {
-      const updates = this.room.receiveInput(decoded.input);
-      this.broadcast(updates);
-    }
-  }
-
-  async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
-    const attachment = ws.deserializeAttachment() as SocketAttachment | undefined;
-    if (attachment && this.room) {
-      this.broadcast(this.room.leave(attachment.playerID));
-    }
-    ws.close(code, reason);
-  }
-
-  async webSocketError(ws: WebSocket): Promise<void> {
-    const attachment = ws.deserializeAttachment() as SocketAttachment | undefined;
-    if (attachment && this.room) {
-      this.broadcast(this.room.leave(attachment.playerID));
-    }
+  private handle(socket: WebSocket, payload: string): void {
+    const message = decodeMessage(payload);
+    if (!message || !this.state) return;
+    let responses: NetworkMessage[] = [];
+    if (message.type === "join") responses = this.state.join({ id: message.playerID, nickname: message.nickname });
+    else if (message.type === "input") responses = this.state.receiveInput(message.input);
+    if (responses.length > 0) this.broadcast(responses);
   }
 
   private broadcast(messages: NetworkMessage[]): void {
-    if (messages.length === 0) {
-      return;
-    }
-
-    const payload = encodeMessages(messages);
-    for (const socket of this.ctx.getWebSockets()) {
-      socket.send(payload);
+    for (const socket of this.sockets) {
+      for (const message of messages) socket.send(encodeMessage(message));
     }
   }
 }
 
-function roomInitFromURL(url: URL): RoomInit {
-  const ruleset = url.searchParams.get("ruleset") === "meleeOnly" ? "meleeOnly" : "standard";
-  return {
-    roomCode: normalizeRoomCode(url.searchParams.get("roomCode") ?? "ROOM"),
-    mapID: url.searchParams.get("mapID") ?? "neon-grid",
-    ruleset,
-    targetPlayers: Number(url.searchParams.get("targetPlayers") ?? 2),
-    seed: Number(url.searchParams.get("seed") ?? Date.now() % 100000)
-  };
-}
-
-function cleanID(value: string): string {
-  return value.replace(/[^a-z0-9_-]/gi, "").slice(0, 32);
-}
-
-function cleanNickname(value: string): string {
-  return value.trim().replace(/\s+/g, " ").slice(0, 18) || "Player";
-}
-
-function encode(message: NetworkMessage): string {
-  return JSON.stringify(message);
-}
-
-function encodeMessages(messages: NetworkMessage[]): string {
-  return JSON.stringify(messages);
-}
-
-function parseMessage(value: string): NetworkMessage | undefined {
-  try {
-    return JSON.parse(value) as NetworkMessage;
-  } catch {
-    return undefined;
-  }
-}
-
-function json(value: unknown, status = 200): Response {
-  return new Response(JSON.stringify(value), {
-    status,
-    headers: { "Content-Type": "application/json" }
-  });
-}
+export class NeonRoom extends NeonArenaRoom {}

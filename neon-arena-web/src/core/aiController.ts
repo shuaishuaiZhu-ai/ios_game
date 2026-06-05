@@ -1,101 +1,46 @@
-import { add, length, normalize, scale, sub, type Vector2, zeroVector } from "./geometry";
-import type { Difficulty, MapDefinition, MatchSnapshot, MeleeAction, PlayerInput, PlayerState, SafeZoneState } from "./models";
+import { distance, length, normalize, sub, type Vector2 } from "./geometry";
+import type { Difficulty, MapDefinition, MatchSnapshot, PlayerInput } from "./models";
+import { steerToward } from "./ai/navigation";
+import { chooseTacticalTarget } from "./ai/tactics";
 
 export class AIController {
-  constructor(
-    readonly playerID: string,
-    readonly difficulty: Difficulty
-  ) {}
+  constructor(readonly playerID: string, readonly difficulty: Difficulty) {}
 
   input(snapshot: MatchSnapshot, map: MapDefinition): PlayerInput {
-    const self = snapshot.players.find((player) => player.id === this.playerID && !player.isEliminated);
-    if (!self) {
-      return { playerID: this.playerID, movement: { ...zeroVector }, aim: { ...zeroVector }, firePressed: false, tick: snapshot.tick };
-    }
-
-    const safeMovement = this.movementTowardSafeZoneIfNeeded(self, snapshot.safeZone);
-    const target = nearestOpponent(self, snapshot.players);
-    const targetVector = target ? sub(target.position, self.position) : { x: 1, y: 0 };
-    const aim = this.adjustedAim(normalize(targetVector));
-    const combatMovement = target ? this.movementFor(self, target, map) : { ...zeroVector };
-    const movement = length(safeMovement) > 0 ? safeMovement : combatMovement;
-    const meleeAction = this.meleeAction(length(targetVector));
-
-    const shouldBurst = this.shouldDashOrRoll(length(targetVector), snapshot.tick, length(safeMovement) > 0);
-    const input: PlayerInput = {
+    const player = snapshot.players.find((candidate) => candidate.id === this.playerID);
+    if (!player || player.isEliminated) return this.empty(snapshot.tick);
+    const outsideZone = distance(player.position, snapshot.safeZone.center) > snapshot.safeZone.radius - 60;
+    const tactic = chooseTacticalTarget(player, snapshot);
+    const desired = outsideZone ? snapshot.safeZone.center : tactic.desiredPosition;
+    const nav = steerToward(player.position, desired, map);
+    const aim = tactic.enemy ? normalize(sub(tactic.enemy.position, player.position)) : normalize(nav.movement);
+    const aggression = this.difficulty === "easy" ? 0.35 : this.difficulty === "medium" ? 0.65 : 0.9;
+    const phasePressure = snapshot.safeZone.phase >= 2 ? 0.18 : 0;
+    const firePressed = tactic.shouldFire && shouldPulse(snapshot.tick, this.playerID, aggression + phasePressure);
+    const shieldPressed = player.weaponID === "energy-shield-baton" && tactic.enemy !== undefined && distance(player.position, tactic.enemy.position) < 190;
+    const dashPressed = (outsideZone || tactic.shouldDash || nav.isBlocked) && player.dashCooldownRemaining <= 0 && shouldPulse(snapshot.tick, `${this.playerID}-dash`, aggression);
+    const rollPressed = player.health < 35 && player.rollCooldownRemaining <= 0 && shouldPulse(snapshot.tick, `${this.playerID}-roll`, aggression);
+    const meleeAction = player.weapon ? undefined : tactic.shouldFire ? "punch" : undefined;
+    return {
       playerID: this.playerID,
-      movement,
-      aim,
-      firePressed: this.shouldAttack(length(targetVector), snapshot.tick) || meleeAction !== undefined,
+      movement: length(nav.movement) > 0 ? nav.movement : { x: 0, y: 0 },
+      aim: length(aim) > 0 ? aim : { x: 1, y: 0 },
+      firePressed,
+      dashPressed,
+      rollPressed,
+      shieldPressed,
+      meleeAction,
       tick: snapshot.tick
     };
-    if (shouldBurst === "dash") {
-      input.dashPressed = true;
-    } else if (shouldBurst === "roll") {
-      input.rollPressed = true;
-    }
-    if (meleeAction) {
-      input.meleeAction = meleeAction;
-    }
-    return input;
   }
 
-  movementTowardSafeZoneIfNeeded(player: PlayerState, safeZone: SafeZoneState): Vector2 {
-    const dist = length(sub(player.position, safeZone.center));
-    if (dist <= safeZone.radius * 0.82) {
-      return { ...zeroVector };
-    }
-    return normalize(sub(safeZone.center, player.position));
-  }
-
-  private movementFor(player: PlayerState, target: PlayerState, _map: MapDefinition): Vector2 {
-    const offset = sub(target.position, player.position);
-    const dist = length(offset);
-    const strafe = normalize({ x: -offset.y, y: offset.x });
-
-    if (this.difficulty === "easy") {
-      return dist > 160 ? normalize(offset) : scale(strafe, 0.35);
-    }
-    if (this.difficulty === "medium") {
-      return dist > 130 ? normalize(offset) : strafe;
-    }
-    if (dist < 80) {
-      return normalize(sub(player.position, target.position));
-    }
-    return normalize(add(normalize(offset), scale(strafe, 0.45)));
-  }
-
-  private adjustedAim(aim: Vector2): Vector2 {
-    if (this.difficulty === "easy") return normalize(add(aim, { x: 0.24, y: -0.16 }));
-    if (this.difficulty === "medium") return normalize(add(aim, { x: 0.08, y: -0.05 }));
-    return aim;
-  }
-
-  private shouldAttack(distance: number, tick: number): boolean {
-    if (this.difficulty === "easy") return tick % 22 === 0 && distance < 360;
-    if (this.difficulty === "medium") return tick % 14 === 0 && distance < 430;
-    return tick % 8 === 0 && distance < 480;
-  }
-
-  private shouldDashOrRoll(distance: number, tick: number, outsideSafeZone: boolean): "dash" | "roll" | undefined {
-    if (outsideSafeZone && tick % 18 === 0) return "dash";
-    if (this.difficulty === "easy") return undefined;
-    if (this.difficulty === "medium" && distance > 260 && tick % 36 === 0) return "dash";
-    if (this.difficulty === "hard" && distance > 220 && tick % 22 === 0) return "dash";
-    if (this.difficulty === "hard" && distance < 72 && tick % 28 === 0) return "roll";
-    return undefined;
-  }
-
-  private meleeAction(distance: number): MeleeAction | undefined {
-    if (distance >= 72) return undefined;
-    if (this.difficulty === "easy") return "punch";
-    if (this.difficulty === "medium") return distance > 44 ? "flyingKick" : "punch";
-    return distance < 42 ? "throw" : "flyingKick";
+  private empty(tick: number): PlayerInput {
+    return { playerID: this.playerID, movement: { x: 0, y: 0 }, aim: { x: 1, y: 0 }, firePressed: false, tick };
   }
 }
 
-function nearestOpponent(player: PlayerState, players: PlayerState[]): PlayerState | undefined {
-  return players
-    .filter((candidate) => candidate.id !== player.id && !candidate.isEliminated)
-    .sort((a, b) => length(sub(a.position, player.position)) - length(sub(b.position, player.position)))[0];
+function shouldPulse(tick: number, key: string, chance: number): boolean {
+  const hash = [...key].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const signal = Math.sin((tick + hash) * 12.9898) * 43758.5453;
+  return signal - Math.floor(signal) < chance;
 }

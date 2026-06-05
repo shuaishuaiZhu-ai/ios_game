@@ -1,15 +1,22 @@
 import { BrowserInputState } from "./BrowserInputState";
+import { canUseDisplacement, canUseWeapons, type Ruleset } from "../../core/models";
+
+export interface TouchControlsOptions {
+  ruleset: Ruleset;
+}
 
 export class TouchControls {
   private root: HTMLElement;
   private state: BrowserInputState;
+  private options: TouchControlsOptions;
   private pointerID: number | undefined;
   private base!: HTMLElement;
   private knob!: HTMLElement;
 
-  constructor(root: HTMLElement, state: BrowserInputState) {
+  constructor(root: HTMLElement, state: BrowserInputState, options: TouchControlsOptions) {
     this.root = root;
     this.state = state;
+    this.options = options;
   }
 
   mount(): void {
@@ -25,13 +32,14 @@ export class TouchControls {
     pad.append(this.base, this.knob);
     const actions = document.createElement("div");
     actions.className = "action-pad";
-    actions.append(
-      this.button("action-button action-fire", () => this.state.queueFire()),
-      this.button("action-button action-melee", () => this.state.queueMelee("punch")),
-      this.button("action-button action-dash", () => this.state.queueDash()),
-      this.button("action-button action-roll", () => this.state.queueRoll()),
-      this.holdButton("action-button action-shield")
-    );
+    if (canUseWeapons(this.options.ruleset)) actions.append(this.button("action-button action-fire", () => this.state.queueFire()));
+    actions.append(this.button("action-button action-melee", () => this.state.queueMelee("punch")));
+    if (canUseDisplacement(this.options.ruleset)) {
+      actions.append(
+        this.button("action-button action-dash", () => this.state.queueDash()),
+        this.button("action-button action-roll", () => this.state.queueRoll())
+      );
+    }
     this.root.append(ribbon, pad, actions);
     pad.addEventListener("pointerdown", (event) => this.startJoystick(event));
     pad.addEventListener("pointermove", (event) => this.moveJoystick(event));
@@ -55,13 +63,6 @@ export class TouchControls {
     });
     button.addEventListener("pointerup", () => button.classList.remove("pressed"));
     button.addEventListener("pointercancel", () => button.classList.remove("pressed"));
-    return button;
-  }
-
-  private holdButton(className: string): HTMLButtonElement {
-    const button = this.button(className, () => this.state.setShieldHeld(true));
-    button.addEventListener("pointerup", () => this.state.setShieldHeld(false));
-    button.addEventListener("pointercancel", () => this.state.setShieldHeld(false));
     return button;
   }
 

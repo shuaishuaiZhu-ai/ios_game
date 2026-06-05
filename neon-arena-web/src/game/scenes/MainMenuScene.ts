@@ -1,22 +1,21 @@
 import Phaser from "phaser";
+import { matchConfig, type Ruleset } from "../../core/models";
 
-/**
- * MainMenuScene presents a simple, user‑friendly start screen before the game begins.
- * It displays a full‑screen illustration as a backdrop and a prominent button to
- * start the match. Additional UI elements, such as a title, can be added here
- * without affecting gameplay logic. When the user taps the start button the scene
- * transitions to the arena.
- */
+type MenuButton = {
+  rect: Phaser.GameObjects.Rectangle;
+  text: Phaser.GameObjects.Text;
+};
+
 export class MainMenuScene extends Phaser.Scene {
-  constructor() { super("main-menu"); }
+  constructor() {
+    super("main-menu");
+  }
 
   create(): void {
     const { width, height } = this.scale;
-    // Draw the background illustration. The menu-background asset is preloaded via PreloadScene.
     const bg = this.add.image(width / 2, height / 2, "menu-background");
     bg.setDisplaySize(width, height);
 
-    // Display the game title at the top of the screen.
     const title = this.add.text(width / 2, height * 0.2, "NEON ARENA", {
       fontFamily: "Arial, sans-serif",
       fontSize: `${Math.round(height * 0.06)}px`,
@@ -25,41 +24,54 @@ export class MainMenuScene extends Phaser.Scene {
     });
     title.setOrigin(0.5);
 
-    // Create a semi‑transparent rounded rectangle for the start button.
-    const buttonWidth = Math.min(width * 0.5, 360);
-    const buttonHeight = Math.max(48, Math.round(height * 0.08));
-    const buttonX = width / 2;
-    const buttonY = height * 0.7;
-    const startButton = this.add.rectangle(buttonX, buttonY, buttonWidth, buttonHeight, 0x00e5ff, 0.85);
-    startButton.setOrigin(0.5);
-    startButton.setStrokeStyle(2, 0xffffff, 0.9);
-    startButton.setInteractive({ useHandCursor: true });
-
-    // Label the button with text.
-    const startText = this.add.text(buttonX, buttonY, "Start Game", {
-      fontFamily: "Arial, sans-serif",
-      fontSize: `${Math.round(buttonHeight * 0.5)}px`,
-      color: "#070916",
-      fontStyle: "bold"
-    });
-    startText.setOrigin(0.5);
-
-    // Handle pointer/touch interactions on the button.
-    startButton.on("pointerdown", () => {
+    const startMode = (ruleset: Ruleset): void => {
       const inputState = this.registry.get("inputState");
-      // Pass through the existing input state when starting the arena scene.
-      this.scene.start("arena", { inputState });
-    });
+      const config = matchConfig({ kind: "single", difficulty: "medium", ruleset }, "map01_skyline_garden_ruins", 4, 1, 30);
+      this.scene.start("arena", { inputState, config });
+    };
 
-    // Re‑calculate layout on resize to ensure a responsive menu.
+    const weaponButton = this.createButton("Weapon Mode", () => startMode("standard"));
+    const meleeButton = this.createButton("Melee Mode", () => startMode("meleeOnly"));
+    this.layoutButtons(width, height, weaponButton, meleeButton);
+
     this.scale.on("resize", (gameSize: Phaser.Structs.Size) => {
       const { width: newW, height: newH } = gameSize;
       bg.setPosition(newW / 2, newH / 2).setDisplaySize(newW, newH);
       title.setPosition(newW / 2, newH * 0.2).setFontSize(Math.round(newH * 0.06));
-      const newButtonWidth = Math.min(newW * 0.5, 360);
-      const newButtonHeight = Math.max(48, Math.round(newH * 0.08));
-      startButton.setPosition(newW / 2, newH * 0.7).setSize(newButtonWidth, newButtonHeight);
-      startText.setPosition(newW / 2, newH * 0.7).setFontSize(Math.round(newButtonHeight * 0.5));
+      this.layoutButtons(newW, newH, weaponButton, meleeButton);
     });
+  }
+
+  private createButton(label: string, onPress: () => void): MenuButton {
+    const rect = this.add.rectangle(0, 0, 320, 54, 0x00e5ff, 0.86);
+    rect.setOrigin(0.5);
+    rect.setStrokeStyle(2, 0xffffff, 0.9);
+    rect.setInteractive({ useHandCursor: true });
+    rect.on("pointerdown", onPress);
+
+    const text = this.add.text(0, 0, label, {
+      fontFamily: "Arial, sans-serif",
+      fontSize: "24px",
+      color: "#070916",
+      fontStyle: "bold"
+    });
+    text.setOrigin(0.5);
+
+    return { rect, text };
+  }
+
+  private layoutButtons(width: number, height: number, weaponButton: MenuButton, meleeButton: MenuButton): void {
+    const buttonWidth = Math.min(width * 0.46, 330);
+    const buttonHeight = Math.max(46, Math.round(height * 0.08));
+    const gap = Math.max(14, Math.round(height * 0.04));
+    const startY = height * 0.66;
+
+    this.layoutButton(weaponButton, width / 2, startY, buttonWidth, buttonHeight);
+    this.layoutButton(meleeButton, width / 2, startY + buttonHeight + gap, buttonWidth, buttonHeight);
+  }
+
+  private layoutButton(button: MenuButton, x: number, y: number, width: number, height: number): void {
+    button.rect.setPosition(x, y).setSize(width, height);
+    button.text.setPosition(x, y).setFontSize(Math.round(height * 0.46));
   }
 }

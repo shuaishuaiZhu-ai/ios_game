@@ -24,6 +24,22 @@ export const characterAssets: ArenaAsset[] = [
   { key: "fighter-orange-fox", path: "/assets/neon-arena/characters/fighter_orange_fox.png", kind: "image" }
 ];
 
+export const characterSheetAssets: ArenaAsset[] = [
+  { key: "fighter-cyan-cat-sheet", path: "/assets/neon-arena/characters/sheets/fighter_cyan_cat_sheet_4x1.png", kind: "spritesheet", frameWidth: 256, frameHeight: 256 },
+  { key: "fighter-pink-bunny-sheet", path: "/assets/neon-arena/characters/sheets/fighter_pink_bunny_sheet_4x1.png", kind: "spritesheet", frameWidth: 256, frameHeight: 256 },
+  { key: "fighter-green-leaf-sheet", path: "/assets/neon-arena/characters/sheets/fighter_green_leaf_sheet_4x1.png", kind: "spritesheet", frameWidth: 256, frameHeight: 256 },
+  { key: "fighter-orange-fox-sheet", path: "/assets/neon-arena/characters/sheets/fighter_orange_fox_sheet_4x1.png", kind: "spritesheet", frameWidth: 256, frameHeight: 256 }
+];
+
+export const propAssets: ArenaAsset[] = [
+  { key: "prop-broken-glasshouse", path: "/assets/neon-arena/props/broken_glasshouse_frame.png", kind: "image" },
+  { key: "prop-cover-hedge", path: "/assets/neon-arena/props/cover_hedge_neon.png", kind: "image" },
+  { key: "prop-cover-wall", path: "/assets/neon-arena/props/cover_wall_ruin.png", kind: "image" },
+  { key: "prop-neon-plants", path: "/assets/neon-arena/props/neon_plants_cluster.png", kind: "image" },
+  { key: "prop-reflective-pool", path: "/assets/neon-arena/props/reflective_pool.png", kind: "image" },
+  { key: "prop-sky-bridge", path: "/assets/neon-arena/props/sky_bridge_segment.png", kind: "image" }
+];
+
 export const weaponAssets: ArenaAsset[] = [
   { key: "weapon-neon-katana", path: "/assets/neon-arena/weapons/neon_katana_pickup.png", kind: "image" },
   { key: "weapon-pulse-bow", path: "/assets/neon-arena/weapons/pulse_bow_pickup.png", kind: "image" },
@@ -65,6 +81,8 @@ export const uiAssets: ArenaAsset[] = [
 export const arenaAssets: ArenaAsset[] = [
   ...mapAssets,
   ...characterAssets,
+  ...characterSheetAssets,
+  ...propAssets,
   ...weaponAssets,
   ...vfxAssets,
   ...hudAssets,
@@ -73,6 +91,10 @@ export const arenaAssets: ArenaAsset[] = [
 
 export function fighterKeyForIndex(index: number): string {
   return characterAssets[index % characterAssets.length]!.key;
+}
+
+export function fighterSheetKeyForIndex(index: number): string {
+  return characterSheetAssets[index % characterSheetAssets.length]!.key;
 }
 
 export function weaponTextureKey(weaponID: WeaponID): string {

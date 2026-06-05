@@ -7,11 +7,19 @@ export class VfxSystem {
 
   play(events: CombatEvent[]): void {
     for (const event of events) {
-      if (event.type === "melee-swing") this.slash(event.position.x, event.position.y, Math.atan2(event.facing.y, event.facing.x), event.weaponID);
+      if (event.type === "projectile-fired") this.projectileFlash(event.weaponID, event.from.x, event.from.y, event.to.x, event.to.y);
+      else if (event.type === "melee-swing") this.slash(event.position.x, event.position.y, Math.atan2(event.facing.y, event.facing.x), event.weaponID);
       else if (event.type === "projectile-hit" || event.type === "melee-hit") this.spark(event.position.x, event.position.y);
       else if (event.type === "dash" || event.type === "roll") this.afterimage(event.from.x, event.from.y, event.to.x, event.to.y);
       else if (event.type === "pickup" || event.type === "shield-block" || event.type === "safe-zone-phase") this.pulse("fx-hit-spark", event.type === "safe-zone-phase" ? 800 : event.position.x, event.type === "safe-zone-phase" ? 550 : event.position.y, event.type === "safe-zone-phase" ? 220 : 92);
     }
+  }
+
+  private projectileFlash(weaponID: WeaponID, x1: number, y1: number, x2: number, y2: number): void {
+    const key = weaponID === "pulse-bow" ? "fx-projectile-pulse-bow" : "fx-projectile-ray-pistol";
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const img = this.scene.add.image((x1 + x2) / 2, (y1 + y2) / 2, key).setRotation(angle).setDepth(DepthLayers.vfx).setDisplaySize(96, 26).setAlpha(0.82);
+    this.scene.tweens.add({ targets: img, alpha: 0, scaleX: 1.35, duration: 130, onComplete: () => img.destroy() });
   }
 
   private slash(x: number, y: number, angle: number, weaponID?: WeaponID): void {
@@ -25,6 +33,7 @@ export class VfxSystem {
   private afterimage(x1: number, y1: number, x2: number, y2: number): void {
     const line = this.scene.add.line(0, 0, x1, y1, x2, y2, 0x00e5ff, 0.42).setOrigin(0).setDepth(DepthLayers.vfx);
     this.scene.tweens.add({ targets: line, alpha: 0, duration: 180, onComplete: () => line.destroy() });
+    this.pulse("fx-hit-spark", x2, y2, 58);
   }
 
   private pulse(key: string, x: number, y: number, size: number): void {

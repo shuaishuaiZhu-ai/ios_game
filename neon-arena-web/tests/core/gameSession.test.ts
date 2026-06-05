@@ -56,6 +56,31 @@ describe("movement and collision", () => {
     session.step([input("p2", { x: 1, y: 0 }, { x: 1, y: 0 }, false, undefined, false, true)], 0.1);
     expect(session.snapshot().events.some((event) => event.type === "roll")).toBe(true);
   });
+
+  it("keeps standard displacement on cooldown", () => {
+    const session = standardSession();
+    session.step([input("p1", { x: 1, y: 0 }, { x: 1, y: 0 }, false, undefined, true)], 0.1);
+    const afterDash = session.players.get("p1")!.position;
+    expect(session.players.get("p1")!.dashCooldownRemaining).toBeGreaterThan(0);
+    session.step([input("p1", { x: 1, y: 0 }, { x: 1, y: 0 }, false, undefined, true)], 0.1);
+    const afterCooldownBlocked = session.players.get("p1")!.position;
+    expect(distance(afterDash, afterCooldownBlocked)).toBeLessThanOrEqual(moveSpeed * 0.1 + 1);
+    expect(session.snapshot().events.some((event) => event.type === "dash")).toBe(false);
+  });
+
+  it("limits melee-only mode to movement and melee attacks", () => {
+    const session = meleeSession();
+    expect(session.droppedWeapons).toHaveLength(0);
+    const before = session.players.get("p1")!.position;
+    session.step([input("p1", { x: 1, y: 0 }, { x: 1, y: 0 }, true, undefined, true, true)], 0.1);
+    const afterInvalidButtons = session.players.get("p1")!.position;
+    expect(distance(before, afterInvalidButtons)).toBeLessThanOrEqual(moveSpeed * 0.1 + 1);
+    expect(session.snapshot().events.some((event) => ["dash", "roll", "projectile-fired", "shield-block"].includes(event.type))).toBe(false);
+    session.forcePlayerPosition("p1", vec(300, 300));
+    session.forcePlayerPosition("p2", vec(344, 300));
+    session.step([input("p1", { x: 0, y: 0 }, { x: 1, y: 0 }, false, "punch")], 0.1);
+    expect(session.snapshot().events.some((event) => event.type === "melee-swing")).toBe(true);
+  });
 });
 
 describe("combat events", () => {
@@ -137,6 +162,11 @@ describe("AI", () => {
 
 function standardSession(): GameSession {
   const config = matchConfig({ kind: "single", difficulty: "medium", ruleset: "standard" }, "map01_skyline_garden_ruins", 2);
+  return new GameSession(config, ["p1", "p2"]);
+}
+
+function meleeSession(): GameSession {
+  const config = matchConfig({ kind: "single", difficulty: "medium", ruleset: "meleeOnly" }, "map01_skyline_garden_ruins", 2);
   return new GameSession(config, ["p1", "p2"]);
 }
 

@@ -237,6 +237,14 @@ export function rulesetForMode(mode: GameMode): Ruleset {
   return mode.ruleset;
 }
 
+export function canUseDisplacement(ruleset: Ruleset): boolean {
+  return ruleset === "standard";
+}
+
+export function canUseWeapons(ruleset: Ruleset): boolean {
+  return ruleset === "standard";
+}
+
 export function matchConfig(mode: GameMode, mapID: string, playerCount: number, seed = 1, tickRate = 30): MatchConfig {
   return { mode, mapID, playerCount, seed, tickRate };
 }

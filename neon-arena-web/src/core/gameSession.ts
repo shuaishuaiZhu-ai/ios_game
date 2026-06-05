@@ -22,6 +22,8 @@ import {
 } from "./geometry";
 import { mapByID, safeZoneState } from "./maps";
 import {
+  canUseDisplacement,
+  canUseWeapons,
   defaultWeaponForType,
   energyShieldBaton,
   neonKatana,
@@ -85,7 +87,7 @@ export class GameSession {
       });
     });
 
-    if (rulesetForMode(config.mode) === "standard") {
+    if (canUseWeapons(rulesetForMode(config.mode))) {
       this.droppedWeapons = map.weaponSpawnPoints.map((spawn, index) => {
         const type = spawn.allowedTypes[index % spawn.allowedTypes.length]!;
         return {
@@ -224,6 +226,7 @@ export class GameSession {
     const movement = normalize(input.movement);
     const candidate = add(player.position, scale(movement, moveSpeed * deltaSeconds));
     player.position = this.constrainedPosition(candidate);
+    if (!canUseDisplacement(rulesetForMode(this.config.mode))) return;
     const burstDirection = length(movement) > 0 ? movement : player.facing;
     if (input.dashPressed && player.dashCooldownRemaining <= 0 && length(burstDirection) > 0) {
       const from = { ...player.position };
@@ -260,7 +263,7 @@ export class GameSession {
   }
 
   private applyPickups(): void {
-    if (rulesetForMode(this.config.mode) !== "standard") {
+    if (!canUseWeapons(rulesetForMode(this.config.mode))) {
       this.droppedWeapons = [];
       for (const player of this.players.values()) {
         delete player.weapon;
@@ -281,13 +284,13 @@ export class GameSession {
 
   private performAction(player: PlayerState, input: PlayerInput): void {
     if (player.cooldownRemaining > 0 && !input.shieldPressed) return;
+    if (rulesetForMode(this.config.mode) === "meleeOnly") {
+      if (input.meleeAction) this.applyMeleeAction(input.meleeAction, player);
+      return;
+    }
     if (input.shieldPressed && player.weaponID === "energy-shield-baton") {
       player.shieldRemaining = energyShieldBaton.blockDuration ?? 0.45;
       this.eventsThisTick.push({ type: "shield-block", tick: this.tick, playerID: player.id, position: { ...player.position } });
-      return;
-    }
-    if (rulesetForMode(this.config.mode) === "meleeOnly") {
-      this.applyMeleeAction(input.meleeAction ?? "punch", player);
       return;
     }
     if (player.weapon === "melee") {

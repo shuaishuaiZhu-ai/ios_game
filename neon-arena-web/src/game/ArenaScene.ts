@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { AIController } from "../core/aiController";
 import { GameSession } from "../core/gameSession";
 import { mapByID } from "../core/maps";
-import { matchConfig, type MapDefinition, type MatchConfig, type MatchSnapshot } from "../core/models";
+import { matchConfig, rulesetForMode, type MapDefinition, type MatchConfig, type MatchSnapshot } from "../core/models";
 import { BrowserInputState } from "./input/BrowserInputState";
 import { KeyboardControls } from "./input/KeyboardControls";
 import { InputComposer } from "./input/InputComposer";
@@ -68,13 +68,14 @@ export class ArenaScene extends Phaser.Scene {
     this.vfx = new VfxSystem(this);
     this.keyboard = new KeyboardControls(this);
     this.keyboard.create();
-    this.composer = new InputComposer(this.options.localPlayerID, this.options.inputState, this.keyboard);
+    const ruleset = rulesetForMode(this.options.config.mode);
+    this.composer = new InputComposer(this.options.localPlayerID, this.options.inputState, this.keyboard, ruleset);
     this.driver = new SceneDriverController(this.options.driver, this.map);
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => this.composer.setPointerAimFromWorld(this.cameras.main.getWorldPoint(pointer.x, pointer.y), this.driver.currentSnapshot()));
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => this.composer.setPointerAimFromWorld(this.cameras.main.getWorldPoint(pointer.x, pointer.y), this.driver.currentSnapshot()));
     const hudRoot = document.getElementById("hud-root");
     if (hudRoot) {
-      const touchControls = new TouchControls(hudRoot, this.options.inputState);
+      const touchControls = new TouchControls(hudRoot, this.options.inputState, { ruleset });
       touchControls.mount();
       this.events.once(Phaser.Scenes.Events.DESTROY, () => touchControls.destroy());
     }
@@ -93,7 +94,7 @@ export class ArenaScene extends Phaser.Scene {
     this.safeZoneRenderer.render(snapshot);
     this.weaponRenderer.render(snapshot?.droppedWeapons ?? []);
     this.projectileRenderer.render(snapshot?.projectiles ?? []);
-    this.playerRenderer.render(snapshot?.players ?? []);
+    this.playerRenderer.render(snapshot?.players ?? [], snapshot?.events ?? []);
     this.hudRenderer.render(snapshot);
     if (snapshot && snapshot.tick !== this.lastVfxTick) {
       this.lastVfxTick = snapshot.tick;

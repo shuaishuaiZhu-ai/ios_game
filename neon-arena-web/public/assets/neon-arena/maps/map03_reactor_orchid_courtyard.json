@@ -1,0 +1,155 @@
+{
+  "id": "map03_reactor_orchid_courtyard",
+  "displayName": "Reactor Orchid Courtyard",
+  "image": "maps/map03_reactor_orchid_courtyard.png",
+  "size": [
+    1600,
+    1100
+  ],
+  "spawns": [
+    {
+      "x": 438,
+      "y": 290
+    },
+    {
+      "x": 1152,
+      "y": 288
+    },
+    {
+      "x": 430,
+      "y": 835
+    },
+    {
+      "x": 1162,
+      "y": 820
+    }
+  ],
+  "weaponSpawns": [
+    {
+      "x": 800,
+      "y": 548,
+      "type": "utility"
+    },
+    {
+      "x": 474,
+      "y": 610,
+      "type": "ranged"
+    },
+    {
+      "x": 1110,
+      "y": 596,
+      "type": "melee"
+    },
+    {
+      "x": 705,
+      "y": 270,
+      "type": "ranged"
+    },
+    {
+      "x": 892,
+      "y": 827,
+      "type": "melee"
+    }
+  ],
+  "collisionRects": [
+    {
+      "x": 635,
+      "y": 312,
+      "w": 330,
+      "h": 75,
+      "kind": "solid"
+    },
+    {
+      "x": 640,
+      "y": 715,
+      "w": 325,
+      "h": 75,
+      "kind": "solid"
+    },
+    {
+      "x": 386,
+      "y": 480,
+      "w": 90,
+      "h": 230,
+      "kind": "solid"
+    },
+    {
+      "x": 1120,
+      "y": 455,
+      "w": 92,
+      "h": 240,
+      "kind": "solid"
+    },
+    {
+      "x": 252,
+      "y": 742,
+      "w": 245,
+      "h": 70,
+      "kind": "solid"
+    },
+    {
+      "x": 1105,
+      "y": 230,
+      "w": 230,
+      "h": 64,
+      "kind": "solid"
+    },
+    {
+      "x": 570,
+      "y": 472,
+      "w": 110,
+      "h": 150,
+      "kind": "softCover"
+    },
+    {
+      "x": 920,
+      "y": 470,
+      "w": 110,
+      "h": 150,
+      "kind": "softCover"
+    },
+    {
+      "x": 708,
+      "y": 445,
+      "w": 180,
+      "h": 64,
+      "kind": "softCover"
+    },
+    {
+      "x": 716,
+      "y": 626,
+      "w": 175,
+      "h": 64,
+      "kind": "softCover"
+    },
+    {
+      "x": 265,
+      "y": 244,
+      "w": 205,
+      "h": 65,
+      "kind": "softCover"
+    },
+    {
+      "x": 1070,
+      "y": 795,
+      "w": 230,
+      "h": 70,
+      "kind": "softCover"
+    }
+  ],
+  "safeZone": {
+    "center": {
+      "x": 800,
+      "y": 550
+    },
+    "initialRadius": 500,
+    "minRadius": 145,
+    "phaseSeconds": [
+      22,
+      18,
+      15,
+      12
+    ]
+  },
+  "notes": "Coordinates are visual proxies for Phaser/core collision; tune after playtest."
+}

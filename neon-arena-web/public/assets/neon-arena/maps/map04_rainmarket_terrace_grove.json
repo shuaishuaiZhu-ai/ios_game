@@ -1,0 +1,148 @@
+{
+  "id": "map04_rainmarket_terrace_grove",
+  "displayName": "Rainmarket Terrace Grove",
+  "image": "maps/map04_rainmarket_terrace_grove.png",
+  "size": [
+    1600,
+    1100
+  ],
+  "spawns": [
+    {
+      "x": 360,
+      "y": 280
+    },
+    {
+      "x": 1190,
+      "y": 300
+    },
+    {
+      "x": 360,
+      "y": 820
+    },
+    {
+      "x": 1195,
+      "y": 815
+    }
+  ],
+  "weaponSpawns": [
+    {
+      "x": 610,
+      "y": 400,
+      "type": "melee"
+    },
+    {
+      "x": 930,
+      "y": 415,
+      "type": "ranged"
+    },
+    {
+      "x": 758,
+      "y": 674,
+      "type": "utility"
+    },
+    {
+      "x": 1120,
+      "y": 720,
+      "type": "ranged"
+    },
+    {
+      "x": 355,
+      "y": 575,
+      "type": "melee"
+    }
+  ],
+  "collisionRects": [
+    {
+      "x": 280,
+      "y": 285,
+      "w": 270,
+      "h": 78,
+      "kind": "solid"
+    },
+    {
+      "x": 650,
+      "y": 235,
+      "w": 115,
+      "h": 250,
+      "kind": "solid"
+    },
+    {
+      "x": 960,
+      "y": 250,
+      "w": 120,
+      "h": 245,
+      "kind": "solid"
+    },
+    {
+      "x": 1050,
+      "y": 685,
+      "w": 290,
+      "h": 78,
+      "kind": "solid"
+    },
+    {
+      "x": 475,
+      "y": 780,
+      "w": 280,
+      "h": 70,
+      "kind": "solid"
+    },
+    {
+      "x": 280,
+      "y": 530,
+      "w": 170,
+      "h": 75,
+      "kind": "solid"
+    },
+    {
+      "x": 570,
+      "y": 506,
+      "w": 310,
+      "h": 80,
+      "kind": "softCover"
+    },
+    {
+      "x": 825,
+      "y": 520,
+      "w": 120,
+      "h": 190,
+      "kind": "softCover"
+    },
+    {
+      "x": 205,
+      "y": 760,
+      "w": 180,
+      "h": 62,
+      "kind": "softCover"
+    },
+    {
+      "x": 1165,
+      "y": 332,
+      "w": 160,
+      "h": 58,
+      "kind": "softCover"
+    },
+    {
+      "x": 1035,
+      "y": 827,
+      "w": 200,
+      "h": 58,
+      "kind": "softCover"
+    }
+  ],
+  "safeZone": {
+    "center": {
+      "x": 800,
+      "y": 560
+    },
+    "initialRadius": 515,
+    "minRadius": 145,
+    "phaseSeconds": [
+      22,
+      18,
+      15,
+      12
+    ]
+  },
+  "notes": "Coordinates are visual proxies for Phaser/core collision; tune after playtest."
+}

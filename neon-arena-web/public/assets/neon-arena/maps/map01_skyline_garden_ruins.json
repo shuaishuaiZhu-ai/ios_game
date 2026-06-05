@@ -1,0 +1,148 @@
+{
+  "id": "map01_skyline_garden_ruins",
+  "displayName": "Skyline Garden Ruins",
+  "image": "maps/map01_skyline_garden_ruins.png",
+  "size": [
+    1600,
+    1100
+  ],
+  "spawns": [
+    {
+      "x": 378,
+      "y": 280
+    },
+    {
+      "x": 1210,
+      "y": 315
+    },
+    {
+      "x": 382,
+      "y": 842
+    },
+    {
+      "x": 1150,
+      "y": 832
+    }
+  ],
+  "weaponSpawns": [
+    {
+      "x": 438,
+      "y": 444,
+      "type": "melee"
+    },
+    {
+      "x": 965,
+      "y": 432,
+      "type": "ranged"
+    },
+    {
+      "x": 790,
+      "y": 705,
+      "type": "ranged"
+    },
+    {
+      "x": 1050,
+      "y": 777,
+      "type": "utility"
+    },
+    {
+      "x": 590,
+      "y": 252,
+      "type": "melee"
+    }
+  ],
+  "collisionRects": [
+    {
+      "x": 615,
+      "y": 420,
+      "w": 260,
+      "h": 82,
+      "kind": "solid"
+    },
+    {
+      "x": 1055,
+      "y": 390,
+      "w": 230,
+      "h": 98,
+      "kind": "solid"
+    },
+    {
+      "x": 455,
+      "y": 704,
+      "w": 210,
+      "h": 76,
+      "kind": "solid"
+    },
+    {
+      "x": 250,
+      "y": 362,
+      "w": 120,
+      "h": 160,
+      "kind": "solid"
+    },
+    {
+      "x": 1005,
+      "y": 700,
+      "w": 250,
+      "h": 76,
+      "kind": "solid"
+    },
+    {
+      "x": 735,
+      "y": 205,
+      "w": 250,
+      "h": 64,
+      "kind": "solid"
+    },
+    {
+      "x": 522,
+      "y": 304,
+      "w": 210,
+      "h": 62,
+      "kind": "softCover"
+    },
+    {
+      "x": 330,
+      "y": 800,
+      "w": 260,
+      "h": 70,
+      "kind": "softCover"
+    },
+    {
+      "x": 958,
+      "y": 260,
+      "w": 230,
+      "h": 72,
+      "kind": "softCover"
+    },
+    {
+      "x": 1160,
+      "y": 800,
+      "w": 180,
+      "h": 60,
+      "kind": "softCover"
+    },
+    {
+      "x": 190,
+      "y": 620,
+      "w": 170,
+      "h": 64,
+      "kind": "softCover"
+    }
+  ],
+  "safeZone": {
+    "center": {
+      "x": 800,
+      "y": 550
+    },
+    "initialRadius": 500,
+    "minRadius": 145,
+    "phaseSeconds": [
+      22,
+      18,
+      15,
+      12
+    ]
+  },
+  "notes": "Coordinates are visual proxies for Phaser/core collision; tune after playtest."
+}

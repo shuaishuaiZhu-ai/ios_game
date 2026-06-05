@@ -1,0 +1,141 @@
+{
+  "id": "map02_transit_skybridge_hydroponics",
+  "displayName": "Transit Skybridge Hydroponics",
+  "image": "maps/map02_transit_skybridge_hydroponics.png",
+  "size": [
+    1600,
+    1100
+  ],
+  "spawns": [
+    {
+      "x": 338,
+      "y": 250
+    },
+    {
+      "x": 1210,
+      "y": 250
+    },
+    {
+      "x": 328,
+      "y": 850
+    },
+    {
+      "x": 1220,
+      "y": 850
+    }
+  ],
+  "weaponSpawns": [
+    {
+      "x": 700,
+      "y": 300,
+      "type": "ranged"
+    },
+    {
+      "x": 758,
+      "y": 548,
+      "type": "utility"
+    },
+    {
+      "x": 366,
+      "y": 705,
+      "type": "melee"
+    },
+    {
+      "x": 1160,
+      "y": 575,
+      "type": "ranged"
+    },
+    {
+      "x": 1024,
+      "y": 858,
+      "type": "melee"
+    }
+  ],
+  "collisionRects": [
+    {
+      "x": 480,
+      "y": 230,
+      "w": 130,
+      "h": 270,
+      "kind": "solid"
+    },
+    {
+      "x": 800,
+      "y": 242,
+      "w": 420,
+      "h": 66,
+      "kind": "solid"
+    },
+    {
+      "x": 810,
+      "y": 752,
+      "w": 390,
+      "h": 72,
+      "kind": "solid"
+    },
+    {
+      "x": 374,
+      "y": 700,
+      "w": 110,
+      "h": 200,
+      "kind": "solid"
+    },
+    {
+      "x": 1220,
+      "y": 514,
+      "w": 130,
+      "h": 220,
+      "kind": "solid"
+    },
+    {
+      "x": 215,
+      "y": 330,
+      "w": 190,
+      "h": 62,
+      "kind": "softCover"
+    },
+    {
+      "x": 650,
+      "y": 420,
+      "w": 160,
+      "h": 58,
+      "kind": "softCover"
+    },
+    {
+      "x": 645,
+      "y": 610,
+      "w": 230,
+      "h": 62,
+      "kind": "softCover"
+    },
+    {
+      "x": 1050,
+      "y": 320,
+      "w": 200,
+      "h": 62,
+      "kind": "softCover"
+    },
+    {
+      "x": 213,
+      "y": 815,
+      "w": 260,
+      "h": 74,
+      "kind": "softCover"
+    }
+  ],
+  "safeZone": {
+    "center": {
+      "x": 800,
+      "y": 560
+    },
+    "initialRadius": 520,
+    "minRadius": 145,
+    "phaseSeconds": [
+      22,
+      18,
+      15,
+      12
+    ]
+  },
+  "notes": "Coordinates are visual proxies for Phaser/core collision; tune after playtest."
+}

@@ -1,0 +1,568 @@
+{
+  "version": "1.0.0",
+  "game": "Neon Arena Web",
+  "target": "mobile landscape 844x390",
+  "assets": [
+    {
+      "path": "visual_direction/gameplay_target_844x390.png",
+      "type": "visual_direction",
+      "size": [
+        844,
+        390
+      ]
+    },
+    {
+      "path": "visual_direction/gameplay_target_full.png",
+      "type": "visual_direction",
+      "size": [
+        1844,
+        853
+      ]
+    },
+    {
+      "path": "visual_direction/style_board_844x390.png",
+      "type": "visual_direction",
+      "size": [
+        844,
+        390
+      ]
+    },
+    {
+      "path": "maps/map01_skyline_garden_ruins.png",
+      "type": "map_background",
+      "size": [
+        1600,
+        1100
+      ],
+      "mapId": "map01_skyline_garden_ruins"
+    },
+    {
+      "path": "maps/map01_skyline_garden_ruins.json",
+      "type": "map_config",
+      "mapId": "map01_skyline_garden_ruins"
+    },
+    {
+      "path": "thumbnails/map01_skyline_garden_ruins_thumb.png",
+      "type": "thumbnail",
+      "mapId": "map01_skyline_garden_ruins"
+    },
+    {
+      "path": "maps/map02_transit_skybridge_hydroponics.png",
+      "type": "map_background",
+      "size": [
+        1600,
+        1100
+      ],
+      "mapId": "map02_transit_skybridge_hydroponics"
+    },
+    {
+      "path": "maps/map02_transit_skybridge_hydroponics.json",
+      "type": "map_config",
+      "mapId": "map02_transit_skybridge_hydroponics"
+    },
+    {
+      "path": "thumbnails/map02_transit_skybridge_hydroponics_thumb.png",
+      "type": "thumbnail",
+      "mapId": "map02_transit_skybridge_hydroponics"
+    },
+    {
+      "path": "maps/map03_reactor_orchid_courtyard.png",
+      "type": "map_background",
+      "size": [
+        1600,
+        1100
+      ],
+      "mapId": "map03_reactor_orchid_courtyard"
+    },
+    {
+      "path": "maps/map03_reactor_orchid_courtyard.json",
+      "type": "map_config",
+      "mapId": "map03_reactor_orchid_courtyard"
+    },
+    {
+      "path": "thumbnails/map03_reactor_orchid_courtyard_thumb.png",
+      "type": "thumbnail",
+      "mapId": "map03_reactor_orchid_courtyard"
+    },
+    {
+      "path": "maps/map04_rainmarket_terrace_grove.png",
+      "type": "map_background",
+      "size": [
+        1600,
+        1100
+      ],
+      "mapId": "map04_rainmarket_terrace_grove"
+    },
+    {
+      "path": "maps/map04_rainmarket_terrace_grove.json",
+      "type": "map_config",
+      "mapId": "map04_rainmarket_terrace_grove"
+    },
+    {
+      "path": "thumbnails/map04_rainmarket_terrace_grove_thumb.png",
+      "type": "thumbnail",
+      "mapId": "map04_rainmarket_terrace_grove"
+    },
+    {
+      "path": "maps/map05_cloud_spire_arboretum.png",
+      "type": "map_background",
+      "size": [
+        1600,
+        1100
+      ],
+      "mapId": "map05_cloud_spire_arboretum"
+    },
+    {
+      "path": "maps/map05_cloud_spire_arboretum.json",
+      "type": "map_config",
+      "mapId": "map05_cloud_spire_arboretum"
+    },
+    {
+      "path": "thumbnails/map05_cloud_spire_arboretum_thumb.png",
+      "type": "thumbnail",
+      "mapId": "map05_cloud_spire_arboretum"
+    },
+    {
+      "path": "characters/fighter_cyan_cat.png",
+      "type": "character",
+      "size": [
+        512,
+        512
+      ],
+      "id": "fighter_cyan_cat"
+    },
+    {
+      "path": "characters/sheets/fighter_cyan_cat_sheet_4x1.png",
+      "type": "spritesheet",
+      "id": "fighter_cyan_cat",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frames": 4,
+      "states": [
+        "idle",
+        "move",
+        "attack",
+        "hit"
+      ]
+    },
+    {
+      "path": "characters/portraits/fighter_cyan_cat_portrait.png",
+      "type": "portrait",
+      "id": "fighter_cyan_cat",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "characters/fighter_pink_bunny.png",
+      "type": "character",
+      "size": [
+        512,
+        512
+      ],
+      "id": "fighter_pink_bunny"
+    },
+    {
+      "path": "characters/sheets/fighter_pink_bunny_sheet_4x1.png",
+      "type": "spritesheet",
+      "id": "fighter_pink_bunny",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frames": 4,
+      "states": [
+        "idle",
+        "move",
+        "attack",
+        "hit"
+      ]
+    },
+    {
+      "path": "characters/portraits/fighter_pink_bunny_portrait.png",
+      "type": "portrait",
+      "id": "fighter_pink_bunny",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "characters/fighter_green_leaf.png",
+      "type": "character",
+      "size": [
+        512,
+        512
+      ],
+      "id": "fighter_green_leaf"
+    },
+    {
+      "path": "characters/sheets/fighter_green_leaf_sheet_4x1.png",
+      "type": "spritesheet",
+      "id": "fighter_green_leaf",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frames": 4,
+      "states": [
+        "idle",
+        "move",
+        "attack",
+        "hit"
+      ]
+    },
+    {
+      "path": "characters/portraits/fighter_green_leaf_portrait.png",
+      "type": "portrait",
+      "id": "fighter_green_leaf",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "characters/fighter_orange_fox.png",
+      "type": "character",
+      "size": [
+        512,
+        512
+      ],
+      "id": "fighter_orange_fox"
+    },
+    {
+      "path": "characters/sheets/fighter_orange_fox_sheet_4x1.png",
+      "type": "spritesheet",
+      "id": "fighter_orange_fox",
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "frames": 4,
+      "states": [
+        "idle",
+        "move",
+        "attack",
+        "hit"
+      ]
+    },
+    {
+      "path": "characters/portraits/fighter_orange_fox_portrait.png",
+      "type": "portrait",
+      "id": "fighter_orange_fox",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "weapons/neon_katana.png",
+      "type": "weapon",
+      "id": "neon_katana",
+      "category": "melee",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/neon_katana_pickup.png",
+      "type": "weapon_pickup",
+      "weapon": "neon_katana",
+      "category": "melee",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/pulse_bow.png",
+      "type": "weapon",
+      "id": "pulse_bow",
+      "category": "ranged",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/pulse_bow_pickup.png",
+      "type": "weapon_pickup",
+      "weapon": "pulse_bow",
+      "category": "ranged",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/ray_pistol.png",
+      "type": "weapon",
+      "id": "ray_pistol",
+      "category": "ranged",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/ray_pistol_pickup.png",
+      "type": "weapon_pickup",
+      "weapon": "ray_pistol",
+      "category": "ranged",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/energy_shield_baton.png",
+      "type": "weapon",
+      "id": "energy_shield_baton",
+      "category": "utility",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/energy_shield_baton_pickup.png",
+      "type": "weapon_pickup",
+      "weapon": "energy_shield_baton",
+      "category": "utility",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "weapons/melee_pickup_generic.png",
+      "type": "weapon_pickup",
+      "category": "melee"
+    },
+    {
+      "path": "weapons/ranged_pickup_generic.png",
+      "type": "weapon_pickup",
+      "category": "ranged"
+    },
+    {
+      "path": "weapons/weapon_atlas_2x3.png",
+      "type": "atlas",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 2,
+      "rows": 3
+    },
+    {
+      "path": "vfx/projectile_trail_teal.png",
+      "type": "projectile_trail",
+      "size": [
+        512,
+        128
+      ]
+    },
+    {
+      "path": "vfx/projectile_trail_pink.png",
+      "type": "projectile_trail",
+      "size": [
+        512,
+        128
+      ]
+    },
+    {
+      "path": "vfx/projectile_trail_green.png",
+      "type": "projectile_trail",
+      "size": [
+        512,
+        128
+      ]
+    },
+    {
+      "path": "vfx/projectile_trail_orange.png",
+      "type": "projectile_trail",
+      "size": [
+        512,
+        128
+      ]
+    },
+    {
+      "path": "vfx/melee_slash_pink.png",
+      "type": "melee_slash",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "vfx/melee_slash_teal.png",
+      "type": "melee_slash",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "vfx/melee_slash_orange.png",
+      "type": "melee_slash",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "vfx/hit_spark.png",
+      "type": "impact",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "vfx/safe_zone_ring_1600x1100.png",
+      "type": "safe_zone_overlay",
+      "size": [
+        1600,
+        1100
+      ]
+    },
+    {
+      "path": "vfx/storm_particles_tile_512.png",
+      "type": "particle_tile",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "hud/joystick_left.png",
+      "type": "hud_joystick",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "hud/action_button_attack.png",
+      "type": "hud_button",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "hud/action_button_shoot.png",
+      "type": "hud_button",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "hud/action_button_dash.png",
+      "type": "hud_button",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "hud/action_button_melee.png",
+      "type": "hud_button",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "hud/action_button_shield.png",
+      "type": "hud_button",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "hud/action_button_pickup.png",
+      "type": "hud_button",
+      "size": [
+        256,
+        256
+      ]
+    },
+    {
+      "path": "hud/health_ammo_bars.png",
+      "type": "hud_bars",
+      "size": [
+        512,
+        256
+      ]
+    },
+    {
+      "path": "hud/hud_overlay_844x390.png",
+      "type": "hud_overlay_reference",
+      "size": [
+        844,
+        390
+      ]
+    },
+    {
+      "path": "props/cover_wall_ruin.png",
+      "type": "prop_cover",
+      "size": [
+        512,
+        256
+      ]
+    },
+    {
+      "path": "props/cover_hedge_neon.png",
+      "type": "prop_cover",
+      "size": [
+        512,
+        256
+      ]
+    },
+    {
+      "path": "props/broken_glasshouse_frame.png",
+      "type": "prop_environment",
+      "size": [
+        512,
+        320
+      ]
+    },
+    {
+      "path": "props/reflective_pool.png",
+      "type": "prop_environment",
+      "size": [
+        512,
+        256
+      ]
+    },
+    {
+      "path": "props/sky_bridge_segment.png",
+      "type": "prop_environment",
+      "size": [
+        512,
+        256
+      ]
+    },
+    {
+      "path": "props/neon_plants_cluster.png",
+      "type": "prop_environment",
+      "size": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "visual_direction/gameplay_mockup_from_assets_844x390.png",
+      "type": "visual_direction",
+      "size": [
+        844,
+        390
+      ]
+    },
+    {
+      "path": "visual_direction/preview_contact_sheet.png",
+      "type": "visual_direction",
+      "size": [
+        1090,
+        730
+      ]
+    }
+  ]
+}

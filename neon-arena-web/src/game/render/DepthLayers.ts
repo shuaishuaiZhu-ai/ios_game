@@ -1,7 +1,5 @@
 export const DepthLayers = {
   map: 0,
-  /** Decorative props such as bridges and scenery; rendered above the background */
-  decor: 1,
   storm: 2,
   safeZone: 4,
   pickup: 7,

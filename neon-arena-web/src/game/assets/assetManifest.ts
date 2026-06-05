@@ -56,6 +56,18 @@ export const hudAssets: ArenaAsset[] = [
   { key: "hud-bars", path: "/assets/neon-arena/hud/health_ammo_bars.png", kind: "image" }
 ];
 
+// Prop assets represent environmental objects placed on top of the map background
+// for additional visual interest.  They are loaded here so they can be
+// referenced by key in scenes.  Additional props from the art pack can be
+// added to this list as needed.
+export const propAssets: ArenaAsset[] = [
+  { key: "prop-sky-bridge", path: "/assets/neon-arena/props/sky_bridge_segment.png", kind: "image" },
+  { key: "prop-cover-wall", path: "/assets/neon-arena/props/cover_wall_ruin.png", kind: "image" },
+  { key: "prop-glasshouse", path: "/assets/neon-arena/props/broken_glasshouse_frame.png", kind: "image" },
+  { key: "prop-neon-plant", path: "/assets/neon-arena/props/neon_plants_cluster.png", kind: "image" },
+  { key: "prop-reflect-pool", path: "/assets/neon-arena/props/reflective_pool.png", kind: "image" }
+];
+
 // Additional standalone UI assets used by menus and overlays.  These assets are not directly
 // part of gameplay but provide illustrations or backgrounds for non‑interactive screens.
 export const uiAssets: ArenaAsset[] = [
@@ -69,6 +81,8 @@ export const arenaAssets: ArenaAsset[] = [
   ...vfxAssets,
   ...hudAssets,
   ...uiAssets
+  ,
+  ...propAssets
 ];
 
 export function fighterKeyForIndex(index: number): string {

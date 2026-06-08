@@ -46,8 +46,11 @@ export class ArenaScene extends Phaser.Scene {
     const config = data.config ?? matchConfig({ kind: "single", difficulty: "medium", ruleset: "standard" }, mapID, 4, 1, 30);
     const localPlayerID = data.localPlayerID ?? "p1";
     const inputState = data.inputState ?? new BrowserInputState();
-    const session = new GameSession(config, ["p1", "p2", "p3", "p4"], { p1: "", p2: "", p3: "", p4: "" });
-    const fallbackDriver: SceneDriver = { kind: "single", session, aiControllers: [new AIController("p2", "medium"), new AIController("p3", "hard"), new AIController("p4", "medium")] };
+    const playerIDs = Array.from({ length: config.playerCount }, (_value, index) => `p${index + 1}`);
+    const nicknames = Object.fromEntries(playerIDs.map((id, index) => [id, index === 0 ? "Player" : "AI"]));
+    const session = new GameSession(config, playerIDs, nicknames);
+    const difficulty = config.mode.kind === "single" ? config.mode.difficulty : "medium";
+    const fallbackDriver: SceneDriver = { kind: "single", session, aiControllers: playerIDs.slice(1).map((playerID) => new AIController(playerID, difficulty)) };
     this.options = { localPlayerID, config, inputState, driver: data.driver ?? fallbackDriver };
     this.map = mapByID(config.mapID);
   }
@@ -64,7 +67,7 @@ export class ArenaScene extends Phaser.Scene {
     this.weaponRenderer = new WeaponRenderer(this, this.worldGraphics);
     this.projectileRenderer = new ProjectileRenderer(this);
     this.playerRenderer = new PlayerRenderer(this, this.options.localPlayerID);
-    this.hudRenderer = new HudRenderer(this.uiGraphics, this.options.localPlayerID);
+    this.hudRenderer = new HudRenderer(this, this.uiGraphics, this.options.localPlayerID, this.map);
     this.vfx = new VfxSystem(this);
     this.keyboard = new KeyboardControls(this);
     this.keyboard.create();

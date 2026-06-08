@@ -123,6 +123,25 @@
       "mapId": "map05_cloud_spire_arboretum"
     },
     {
+      "path": "maps/map06_foundry_lava_arena.png",
+      "type": "map_background",
+      "size": [
+        1600,
+        1100
+      ],
+      "mapId": "map06_foundry_lava_arena"
+    },
+    {
+      "path": "maps/map06_foundry_lava_arena.json",
+      "type": "map_config",
+      "mapId": "map06_foundry_lava_arena"
+    },
+    {
+      "path": "thumbnails/map06_foundry_lava_arena_thumb.png",
+      "type": "thumbnail",
+      "mapId": "map06_foundry_lava_arena"
+    },
+    {
       "path": "characters/fighter_cyan_cat.png",
       "type": "character",
       "size": [

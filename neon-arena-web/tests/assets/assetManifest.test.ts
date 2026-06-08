@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { arenaAssets, characterAssets, characterSheetAssets, hudAssets, mapAssets, propAssets, vfxAssets, weaponAssets } from "../../src/game/assets";
+import { arenaAssets, characterAssets, characterPortraitAssets, characterSheetAssets, hudAssets, mapAssets, propAssets, vfxAssets, weaponAssets } from "../../src/game/assets";
 
 describe("asset manifest", () => {
   it("references files that exist in public", () => {
@@ -14,9 +14,11 @@ describe("asset manifest", () => {
   });
 
   it("contains all required maps, characters and weapons", () => {
-    expect(mapAssets.filter((asset) => asset.key.startsWith("map-")).length).toBe(5);
+    expect(mapAssets.filter((asset) => asset.key.startsWith("map-")).length).toBe(6);
+    expect(mapAssets.some((asset) => asset.key === "map-map06_foundry_lava_arena")).toBe(true);
     expect(characterAssets).toHaveLength(4);
     expect(characterSheetAssets).toHaveLength(4);
+    expect(characterPortraitAssets).toHaveLength(4);
     for (const sheet of characterSheetAssets) {
       expect(sheet.kind).toBe("spritesheet");
       expect(sheet.frameWidth).toBe(256);

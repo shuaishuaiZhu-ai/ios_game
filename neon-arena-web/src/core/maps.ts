@@ -205,12 +205,55 @@ export const map05_cloud_spire_arboretum: MapDefinition = {
   safeZone: { center: vec(805, 550), phaseRadii: [510, 328, 145], phaseDuration: 45, outsideDamagePerSecond: 9 }
 };
 
+export const map06_foundry_lava_arena: MapDefinition = {
+  id: "map06_foundry_lava_arena",
+  name: "Foundry Lava Arena",
+  size: vec(1600, 1100),
+  art: {
+    backgroundKey: "map-map06_foundry_lava_arena",
+    thumbnailKey: "thumb-map06_foundry_lava_arena",
+    accent: "#ff6a1a",
+    mood: "lava foundry platform"
+  },
+  walls: [
+    { id: "map06_foundry_lava_arena-c1", kind: "solid", rect: rect(615, 112, 330, 76) },
+    { id: "map06_foundry_lava_arena-c2", kind: "solid", rect: rect(642, 322, 316, 86) },
+    { id: "map06_foundry_lava_arena-c3", kind: "solid", rect: rect(602, 692, 396, 88) },
+    { id: "map06_foundry_lava_arena-c4", kind: "solid", rect: rect(360, 455, 270, 78) },
+    { id: "map06_foundry_lava_arena-c5", kind: "solid", rect: rect(970, 455, 270, 78) },
+    { id: "map06_foundry_lava_arena-c6", kind: "solid", rect: rect(720, 486, 160, 150) },
+    { id: "map06_foundry_lava_arena-c7", kind: "solid", rect: rect(508, 232, 82, 162) },
+    { id: "map06_foundry_lava_arena-c8", kind: "solid", rect: rect(1010, 232, 82, 162) },
+    { id: "map06_foundry_lava_arena-c9", kind: "solid", rect: rect(520, 675, 84, 168) },
+    { id: "map06_foundry_lava_arena-c10", kind: "solid", rect: rect(998, 675, 84, 168) },
+    { id: "map06_foundry_lava_arena-c11", kind: "softCover", rect: rect(235, 345, 180, 70) },
+    { id: "map06_foundry_lava_arena-c12", kind: "softCover", rect: rect(1185, 345, 180, 70) },
+    { id: "map06_foundry_lava_arena-c13", kind: "softCover", rect: rect(235, 720, 180, 70) },
+    { id: "map06_foundry_lava_arena-c14", kind: "softCover", rect: rect(1185, 720, 180, 70) },
+  ],
+  spawnPoints: [
+    vec(265, 235),
+    vec(1335, 235),
+    vec(265, 885),
+    vec(1335, 885),
+  ],
+  weaponSpawnPoints: [
+    { id: "map06_foundry_lava_arena-w1", position: vec(800, 450), allowedTypes: ["utility"], weaponIDs: ["energy-shield-baton"] },
+    { id: "map06_foundry_lava_arena-w2", position: vec(310, 580), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map06_foundry_lava_arena-w3", position: vec(1290, 580), allowedTypes: ["ranged"], weaponIDs: ["ray-pistol", "pulse-bow"] },
+    { id: "map06_foundry_lava_arena-w4", position: vec(805, 245), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+    { id: "map06_foundry_lava_arena-w5", position: vec(805, 852), allowedTypes: ["melee"], weaponIDs: ["neon-katana"] },
+  ],
+  safeZone: { center: vec(800, 550), phaseRadii: [545, 350, 155], phaseDuration: 42, outsideDamagePerSecond: 10 }
+};
+
 export const arenaMaps = [
   map01_skyline_garden_ruins,
   map02_transit_skybridge_hydroponics,
   map03_reactor_orchid_courtyard,
   map04_rainmarket_terrace_grove,
   map05_cloud_spire_arboretum,
+  map06_foundry_lava_arena,
 ] as const;
 
 export function mapByID(id: string): MapDefinition {

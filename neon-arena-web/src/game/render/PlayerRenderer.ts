@@ -6,6 +6,7 @@ import { DepthLayers } from "./DepthLayers";
 export class PlayerRenderer {
   private sprites = new Map<string, Phaser.GameObjects.Sprite>();
   private shadows = new Map<string, Phaser.GameObjects.Ellipse>();
+  private auras = new Map<string, Phaser.GameObjects.Ellipse>();
   private heldWeapons = new Map<string, Phaser.GameObjects.Image>();
   private previousPositions = new Map<string, { x: number; y: number }>();
   private previousHealth = new Map<string, number>();
@@ -28,6 +29,8 @@ export class PlayerRenderer {
       const key = fighterSheetKeyForIndex(isLocal ? 0 : index + 1);
       const sprite = this.sprites.get(player.id) ?? this.scene.add.sprite(player.position.x, player.position.y, key);
       const shadow = this.shadows.get(player.id) ?? this.scene.add.ellipse(player.position.x, player.position.y + 28, 58, 20, 0x000000, 0.34);
+      const auraColor = playerColor(index);
+      const aura = this.auras.get(player.id) ?? this.scene.add.ellipse(player.position.x, player.position.y + 24, 64, 22, auraColor, 0.18);
       const previous = this.previousPositions.get(player.id);
       const previousHealth = this.previousHealth.get(player.id);
       const moved = previous ? Math.hypot(player.position.x - previous.x, player.position.y - previous.y) > 1.2 : false;
@@ -36,12 +39,15 @@ export class PlayerRenderer {
       this.previousHealth.set(player.id, player.health);
       shadow.setPosition(player.position.x, player.position.y + 30).setDepth(DepthLayers.playerShadow + player.position.y / 10000);
       shadow.setScale(player.isEliminated ? 0.8 : moved ? 1.08 : 1, player.isEliminated ? 0.78 : 1).setAlpha(player.isEliminated ? 0.12 : 0.34);
+      aura.setPosition(player.position.x, player.position.y + 24).setDepth(DepthLayers.playerShadow + 0.1 + player.position.y / 10000);
+      aura.setFillStyle(auraColor, player.isEliminated ? 0.05 : 0.18).setStrokeStyle(isLocal ? 4 : 3, auraColor, player.isEliminated ? 0.15 : 0.78);
       sprite.setTexture(key).setFrame(frame).setPosition(player.position.x, player.position.y);
-      sprite.setRotation(Math.atan2(player.facing.y, player.facing.x) + Math.PI / 2);
+      sprite.setRotation(0).setFlipX(player.facing.x < -0.12);
       sprite.setDisplaySize(isLocal ? 86 : 80, isLocal ? 86 : 80).setDepth(DepthLayers.player + player.position.y / 10000);
       sprite.setAlpha(player.isEliminated ? 0.28 : player.invulnerabilityRemaining > 0 ? 0.58 : 1);
       this.sprites.set(player.id, sprite);
       this.shadows.set(player.id, shadow);
+      this.auras.set(player.id, aura);
       if (player.weaponID) {
         const weaponKey = heldWeaponTextureKey(player.weaponID);
         const held = this.heldWeapons.get(player.id) ?? this.scene.add.image(player.position.x, player.position.y, weaponKey);
@@ -59,6 +65,7 @@ export class PlayerRenderer {
     });
     for (const [id, sprite] of this.sprites) if (!active.has(id)) { sprite.destroy(); this.sprites.delete(id); }
     for (const [id, shadow] of this.shadows) if (!active.has(id)) { shadow.destroy(); this.shadows.delete(id); }
+    for (const [id, aura] of this.auras) if (!active.has(id)) { aura.destroy(); this.auras.delete(id); }
     for (const [id, sprite] of this.heldWeapons) if (!active.has(id)) { sprite.destroy(); this.heldWeapons.delete(id); }
     for (const id of [...this.previousPositions.keys()]) if (!active.has(id)) this.previousPositions.delete(id);
     for (const id of [...this.previousHealth.keys()]) if (!active.has(id)) this.previousHealth.delete(id);
@@ -70,4 +77,9 @@ export class PlayerRenderer {
     if (moved) return 1;
     return 0;
   }
+}
+
+function playerColor(index: number): number {
+  const colors = [0xff4a36, 0x27a8ff, 0x9b54ff, 0x65e84e];
+  return colors[index % colors.length]!;
 }

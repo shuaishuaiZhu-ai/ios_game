@@ -14,22 +14,23 @@ export class SafeZoneRenderer {
 
   create(): void {
     this.storm = this.scene.add.tileSprite(this.map.size.x / 2, this.map.size.y / 2, this.map.size.x, this.map.size.y, "fx-storm-tile");
-    this.storm.setAlpha(0.26).setDepth(DepthLayers.storm);
+    this.storm.setAlpha(0.16).setDepth(DepthLayers.storm).setTint(color(this.map.art.accent));
     this.ring = this.scene.add.image(this.map.safeZone.center.x, this.map.safeZone.center.y, "fx-safe-zone");
-    this.ring.setDepth(DepthLayers.safeZone).setAlpha(0.45);
+    this.ring.setDepth(DepthLayers.safeZone).setAlpha(0.26).setTint(color(this.map.art.accent));
   }
 
   render(snapshot: MatchSnapshot | undefined): void {
     if (!snapshot) return;
     const zone = snapshot.safeZone;
-    this.graphics.lineStyle(8, color("#38f5d4"), 0.96).strokeCircle(zone.center.x, zone.center.y, zone.radius);
-    this.graphics.lineStyle(4, color("#ff4fd8"), 0.6).strokeCircle(zone.center.x, zone.center.y, zone.radius + 18);
-    this.graphics.lineStyle(2, color("#00e5ff"), 0.45).strokeCircle(zone.center.x, zone.center.y, zone.radius - 18);
-    this.ring?.setPosition(zone.center.x, zone.center.y).setDisplaySize(zone.radius * 2.08, zone.radius * 2.08).setAlpha(0.24 + zone.phase * 0.08);
+    const accent = color(this.map.art.accent);
+    this.graphics.lineStyle(6, accent, 0.78).strokeCircle(zone.center.x, zone.center.y, zone.radius);
+    this.graphics.lineStyle(3, 0xffd26a, 0.42).strokeCircle(zone.center.x, zone.center.y, zone.radius + 16);
+    this.graphics.lineStyle(2, 0xff4422, 0.34).strokeCircle(zone.center.x, zone.center.y, zone.radius - 16);
+    this.ring?.setPosition(zone.center.x, zone.center.y).setDisplaySize(zone.radius * 2.08, zone.radius * 2.08).setAlpha(0.16 + zone.phase * 0.06);
     if (this.storm) {
       this.storm.tilePositionX += 0.28;
       this.storm.tilePositionY += 0.18;
-      this.storm.setAlpha(0.18 + zone.phase * 0.08);
+      this.storm.setAlpha(0.1 + zone.phase * 0.06);
     }
   }
 }

@@ -31,6 +31,13 @@ export const characterSheetAssets: ArenaAsset[] = [
   { key: "fighter-orange-fox-sheet", path: "/assets/neon-arena/characters/sheets/fighter_orange_fox_sheet_4x1.png", kind: "spritesheet", frameWidth: 256, frameHeight: 256 }
 ];
 
+export const characterPortraitAssets: ArenaAsset[] = [
+  { key: "portrait-cyan-cat", path: "/assets/neon-arena/characters/portraits/fighter_cyan_cat_portrait.png", kind: "image" },
+  { key: "portrait-pink-bunny", path: "/assets/neon-arena/characters/portraits/fighter_pink_bunny_portrait.png", kind: "image" },
+  { key: "portrait-green-leaf", path: "/assets/neon-arena/characters/portraits/fighter_green_leaf_portrait.png", kind: "image" },
+  { key: "portrait-orange-fox", path: "/assets/neon-arena/characters/portraits/fighter_orange_fox_portrait.png", kind: "image" }
+];
+
 export const propAssets: ArenaAsset[] = [
   { key: "prop-broken-glasshouse", path: "/assets/neon-arena/props/broken_glasshouse_frame.png", kind: "image" },
   { key: "prop-cover-hedge", path: "/assets/neon-arena/props/cover_hedge_neon.png", kind: "image" },
@@ -54,6 +61,8 @@ export const weaponAssets: ArenaAsset[] = [
 export const vfxAssets: ArenaAsset[] = [
   { key: "fx-projectile-ray-pistol", path: "/assets/neon-arena/vfx/projectile_trail_teal.png", kind: "image" },
   { key: "fx-projectile-pulse-bow", path: "/assets/neon-arena/vfx/projectile_trail_green.png", kind: "image" },
+  { key: "fx-projectile-pink", path: "/assets/neon-arena/vfx/projectile_trail_pink.png", kind: "image" },
+  { key: "fx-projectile-orange", path: "/assets/neon-arena/vfx/projectile_trail_orange.png", kind: "image" },
   { key: "fx-melee-pink", path: "/assets/neon-arena/vfx/melee_slash_pink.png", kind: "image" },
   { key: "fx-melee-teal", path: "/assets/neon-arena/vfx/melee_slash_teal.png", kind: "image" },
   { key: "fx-melee-orange", path: "/assets/neon-arena/vfx/melee_slash_orange.png", kind: "image" },
@@ -69,7 +78,9 @@ export const hudAssets: ArenaAsset[] = [
   { key: "hud-button-dash", path: "/assets/neon-arena/hud/action_button_dash.png", kind: "image" },
   { key: "hud-button-melee", path: "/assets/neon-arena/hud/action_button_melee.png", kind: "image" },
   { key: "hud-button-shield", path: "/assets/neon-arena/hud/action_button_shield.png", kind: "image" },
-  { key: "hud-bars", path: "/assets/neon-arena/hud/health_ammo_bars.png", kind: "image" }
+  { key: "hud-button-pickup", path: "/assets/neon-arena/hud/action_button_pickup.png", kind: "image" },
+  { key: "hud-bars", path: "/assets/neon-arena/hud/health_ammo_bars.png", kind: "image" },
+  { key: "hud-overlay", path: "/assets/neon-arena/hud/hud_overlay_844x390.png", kind: "image" }
 ];
 
 // Additional standalone UI assets used by menus and overlays.  These assets are not directly
@@ -82,6 +93,7 @@ export const arenaAssets: ArenaAsset[] = [
   ...mapAssets,
   ...characterAssets,
   ...characterSheetAssets,
+  ...characterPortraitAssets,
   ...propAssets,
   ...weaponAssets,
   ...vfxAssets,
@@ -97,6 +109,10 @@ export function fighterSheetKeyForIndex(index: number): string {
   return characterSheetAssets[index % characterSheetAssets.length]!.key;
 }
 
+export function fighterPortraitKeyForIndex(index: number): string {
+  return characterPortraitAssets[index % characterPortraitAssets.length]!.key;
+}
+
 export function weaponTextureKey(weaponID: WeaponID): string {
   return `weapon-${weaponID}`;
 }
@@ -106,5 +122,5 @@ export function heldWeaponTextureKey(weaponID: WeaponID): string {
 }
 
 export function projectileTextureKey(weaponID: WeaponID): string {
-  return weaponID === "pulse-bow" ? "fx-projectile-pulse-bow" : "fx-projectile-ray-pistol";
+  return weaponID === "pulse-bow" ? "fx-projectile-pulse-bow" : "fx-projectile-orange";
 }

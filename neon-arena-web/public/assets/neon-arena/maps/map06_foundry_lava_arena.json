@@ -1,0 +1,41 @@
+{
+  "id": "map06_foundry_lava_arena",
+  "displayName": "Foundry Lava Arena",
+  "image": "maps/map06_foundry_lava_arena.png",
+  "size": [1600, 1100],
+  "spawns": [
+    { "x": 265, "y": 235 },
+    { "x": 1335, "y": 235 },
+    { "x": 265, "y": 885 },
+    { "x": 1335, "y": 885 }
+  ],
+  "weaponSpawns": [
+    { "x": 800, "y": 450, "type": "utility" },
+    { "x": 310, "y": 580, "type": "ranged" },
+    { "x": 1290, "y": 580, "type": "ranged" },
+    { "x": 805, "y": 245, "type": "melee" },
+    { "x": 805, "y": 852, "type": "melee" }
+  ],
+  "collisionRects": [
+    { "x": 615, "y": 112, "w": 330, "h": 76, "kind": "solid" },
+    { "x": 642, "y": 322, "w": 316, "h": 86, "kind": "solid" },
+    { "x": 602, "y": 692, "w": 396, "h": 88, "kind": "solid" },
+    { "x": 360, "y": 455, "w": 270, "h": 78, "kind": "solid" },
+    { "x": 970, "y": 455, "w": 270, "h": 78, "kind": "solid" },
+    { "x": 720, "y": 486, "w": 160, "h": 150, "kind": "solid" },
+    { "x": 508, "y": 232, "w": 82, "h": 162, "kind": "solid" },
+    { "x": 1010, "y": 232, "w": 82, "h": 162, "kind": "solid" },
+    { "x": 520, "y": 675, "w": 84, "h": 168, "kind": "solid" },
+    { "x": 998, "y": 675, "w": 84, "h": 168, "kind": "solid" },
+    { "x": 235, "y": 345, "w": 180, "h": 70, "kind": "softCover" },
+    { "x": 1185, "y": 345, "w": 180, "h": 70, "kind": "softCover" },
+    { "x": 235, "y": 720, "w": 180, "h": 70, "kind": "softCover" },
+    { "x": 1185, "y": 720, "w": 180, "h": 70, "kind": "softCover" }
+  ],
+  "safeZone": {
+    "center": { "x": 800, "y": 550 },
+    "initialRadius": 545,
+    "minRadius": 155,
+    "phaseSeconds": [42, 32, 24]
+  }
+}

@@ -7,7 +7,7 @@ import { matchConfig, weaponDefinitions, type PlayerInput } from "../../src/core
 
 describe("map validation", () => {
   it("keeps all player and weapon spawns out of collision", () => {
-    expect(arenaMaps).toHaveLength(5);
+    expect(arenaMaps).toHaveLength(6);
     for (const map of arenaMaps) {
       expect(map.size.x).toBe(1600);
       expect(map.size.y).toBe(1100);

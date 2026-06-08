@@ -21,8 +21,6 @@ export class TouchControls {
 
   mount(): void {
     this.root.innerHTML = "";
-    const ribbon = document.createElement("div");
-    ribbon.className = "status-ribbon";
     const pad = document.createElement("div");
     pad.className = "touch-pad";
     this.base = document.createElement("div");
@@ -40,7 +38,7 @@ export class TouchControls {
         this.button("action-button action-roll", () => this.state.queueRoll())
       );
     }
-    this.root.append(ribbon, pad, actions);
+    this.root.append(pad, actions);
     pad.addEventListener("pointerdown", (event) => this.startJoystick(event));
     pad.addEventListener("pointermove", (event) => this.moveJoystick(event));
     pad.addEventListener("pointerup", (event) => this.stopJoystick(event));

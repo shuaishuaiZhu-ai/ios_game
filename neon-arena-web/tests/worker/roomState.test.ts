@@ -43,6 +43,20 @@ describe("RoomState", () => {
     room.join({ id: "p2", nickname: "Two" });
     expect(room.session?.droppedWeapons).toHaveLength(0);
   });
+
+  it("starts rooms with the selected map and ruleset", () => {
+    const room = new RoomState({ roomCode: "LAVA06", mapID: "map06_foundry_lava_arena", ruleset: "meleeOnly", targetPlayers: 4, seed: 9 });
+    room.join({ id: "p1", nickname: "One" });
+    room.join({ id: "p2", nickname: "Two" });
+    room.join({ id: "p3", nickname: "Three" });
+    const messages = room.join({ id: "p4", nickname: "Four" });
+    const start = messages.find((message) => message.type === "start");
+    expect(start?.type).toBe("start");
+    if (start?.type === "start") {
+      expect(start.config.mapID).toBe("map06_foundry_lava_arena");
+      expect(start.config.mode).toEqual({ kind: "onlineFFA", ruleset: "meleeOnly" });
+    }
+  });
 });
 
 function roomState(targetPlayers: number): RoomState {

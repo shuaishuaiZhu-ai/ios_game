@@ -11,25 +11,7 @@ export class MapRenderer {
   create(): void {
     this.background = this.scene.add.image(this.map.size.x / 2, this.map.size.y / 2, this.map.art.backgroundKey);
     this.background.setDisplaySize(this.map.size.x, this.map.size.y).setDepth(DepthLayers.map);
-    this.createProps();
-    this.createCoverCues();
-  }
-
-  private createProps(): void {
-    this.map.walls.forEach((wall, index) => {
-      if (!shouldPlaceProp(wall.kind, index)) {
-        return;
-      }
-
-      const rect = wall.rect;
-      const key = propKeyFor(wall.kind, index);
-      const offset = propOffset(index);
-      const prop = this.scene.add.image(rect.origin.x + rect.size.x / 2 + offset.x, rect.origin.y + rect.size.y / 2 + offset.y, key);
-      const width = wall.kind === "solid" ? Phaser.Math.Clamp(rect.size.x * 0.72, 82, 190) : Phaser.Math.Clamp(rect.size.x * 0.58, 68, 150);
-      const height = wall.kind === "solid" ? Phaser.Math.Clamp(rect.size.y * 1.08, 46, 120) : Phaser.Math.Clamp(rect.size.y * 0.88, 42, 96);
-      prop.setDisplaySize(width, height).setDepth(DepthLayers.mapProp + rect.origin.y / 10000);
-      prop.setAlpha(wall.kind === "solid" ? 0.34 : 0.3);
-    });
+    if (debugCollidersEnabled()) this.createCoverCues();
   }
 
   private createCoverCues(): void {
@@ -45,26 +27,6 @@ export class MapRenderer {
   }
 }
 
-function shouldPlaceProp(kind: string, index: number): boolean {
-  if (kind === "softCover") {
-    return index % 2 === 0;
-  }
-  return index % 3 !== 1;
-}
-
-function propKeyFor(kind: string, index: number): string {
-  if (kind === "softCover") {
-    return ["prop-cover-hedge", "prop-neon-plants", "prop-reflective-pool"][index % 3]!;
-  }
-  return ["prop-cover-wall", "prop-broken-glasshouse", "prop-sky-bridge"][index % 3]!;
-}
-
-function propOffset(index: number): { x: number; y: number } {
-  const offsets = [
-    { x: -18, y: -8 },
-    { x: 16, y: 10 },
-    { x: 0, y: -12 },
-    { x: 22, y: -4 },
-  ];
-  return offsets[index % offsets.length]!;
+function debugCollidersEnabled(): boolean {
+  return new URLSearchParams(window.location.search).get("debugColliders") === "1";
 }
